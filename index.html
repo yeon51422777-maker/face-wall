@@ -72,7 +72,7 @@ body.helpoff #help{ display:none }
 
 <div class="ov" id="help">
   <span id="net">● 연결 중…</span><br>
-  <kbd>F</kbd> 전체화면 · <kbd>D</kbd> 연습 얼굴 · <kbd>Q</kbd> QR · <kbd>T</kbd> 제목 · <kbd>M</kbd> 소리 <span id="snd">켜짐</span> · <kbd>H</kbd> 이 안내 숨기기
+  <kbd>F</kbd> 전체화면 · <kbd>D</kbd> 연습 얼굴 · <kbd>Q</kbd> QR · <kbd>T</kbd> 제목 · <kbd>-</kbd><kbd>=</kbd> 얼굴 크기 · <kbd>M</kbd> 소리 <span id="snd">켜짐</span> · <kbd>H</kbd> 이 안내 숨기기
 </div>
 
 <script type="module">
@@ -80,16 +80,17 @@ import { connect, unpack, drawFace, bbox, hash, rng, pageUrl, demoFace, DEMO_NAM
 
 const $ = (id) => document.getElementById(id);
 const cv = $('c'), ctx = cv.getContext('2d');
-let W = 0, H = 0, DPR = 1;
-function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; layout(); }
+let W = 0, H = 0, DPR = 1, store = null;
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; zones = reserved(); }
 addEventListener('resize', resize);
 
 /* =========================================================
    얼굴 하나 = 손떨림 그림 3장(번갈아 보여 줌) + 위치·크기
    ========================================================= */
-const FRAMES = 3, RES = 300;
+const FRAMES = 3, RES = 260;
 const faces = [], byId = new Map();
-let settings = { max: 80 }, total = 0;
+let settings = { max: 80, size: 's' }, total = 0, zones = [];
+const SIZE = { xs: .065, s: .09, m: .13, l: .18 };   // 화면 짧은 변 대비 얼굴 크기
 
 function makeFace(id, v, arriving) {
   const strokes = unpack(v.s), box = bbox(strokes), h = hash(id), R = rng(h);
@@ -103,147 +104,180 @@ function makeFace(id, v, arriving) {
   const order = [...strokes.filter((k) => !isLine(k.c)), ...strokes.filter((k) => isLine(k.c))];
   return {
     id, name: (v.name || '').slice(0, 8), msg: (v.msg || '').slice(0, 12), strokes, order, box, frames,
-    phase: R() * 10, speed: .7 + R() * .6, rot: (R() - .5) * .35, scale: .92 + R() * .18, jx: (R() - .5) * .3, jy: (R() - .5) * .3,
-    x: W / 2, y: H / 2, s: 0, tx: W / 2, ty: H / 2, ts: 0, arriving, lean: 0,
+    phase: R() * 10, speed: .7 + R() * .6, rot: (R() - .5) * .3, scale: .9 + R() * .2,
+    x: W * (.1 + R() * .8), y: H * (.1 + R() * .8), s: 0, arriving, lean: 0, bw: 0, bh: 0,
   };
 }
 
 /* =========================================================
-   자리 배치 — 벌집처럼 엇갈린 칸, 살짝 겹치게 빽빽하게
-   얼굴은 지금 있는 곳에서 가장 가까운 빈 칸으로 (조금씩만 움직임)
+   자리 잡기 — 얼굴끼리 서로 밀어내서 절대 겹치지 않게 (말풍선 자리까지 포함)
    ========================================================= */
 function reserved() {
   const out = [];
   for (const id of ['title', 'qrcard']) {
     const el = $(id); if (!el) continue;
     const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue;
-    const m = Math.min(W, H) * .012; out.push({ l: r.left - m, t: r.top - m, r: r.right + m, b: r.bottom + m });
+    const m = 10; out.push({ l: r.left - m, t: r.top - m, r: r.right + m, b: r.bottom + m });
   }
   return out;
 }
-function layout() {
-  const list = faces;
-  const n = list.length; $('empty').hidden = n > 0;
-  $('countN').textContent = total;
-  if (!n || !W) return;
-  const res = reserved(), short = Math.min(W, H);
-  let s = short * .26, cells = [];   // 큰 칸부터 조금씩 줄여서, 얼굴 수에 딱 맞는 가장 큰 칸을 찾음 → 빈틈 없이 가득
-  for (let it = 0; it < 160; it++) {
-    const rh = s * .88, rows = Math.max(1, Math.round(H / rh)), cols = Math.max(1, Math.round(W / s));
-    const cw = W / cols, ch = H / rows; cells = [];
-    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      const x = (c + (r % 2 ? .75 : .25)) * cw, y = (r + .5) * ch;
-      const hx = cw * .3, hy = ch * .3;
-      if (res.some((q) => x + hx > q.l && x - hx < q.r && y + hy > q.t && y - hy < q.b)) continue;
-      cells.push({ x, y, used: false });
-    }
-    if (cells.length >= n) { s = Math.min(cw, ch * 1.1); break; }
-    s *= .97;
+function faceSize() {   // 설정 크기, 단 사람이 많아 화면에 다 안 들어가면 그만큼만 작게
+  const short = Math.min(W, H), n = Math.max(1, faces.filter((f) => !f.arriving).length);
+  const want = short * (SIZE[settings.size] || SIZE.s);
+  const fit = Math.sqrt(W * H * .42 / n);
+  return Math.max(short * .035, Math.min(want, fit));
+}
+// 말풍선은 얼굴 바로 위 가운데. 크기를 미리 재 둠
+function bubbleFont(s) { return Math.max(10, Math.min(18, s * .17)); }
+function measureBubble(f) {
+  if (!f.msg) { f.bw = f.bh = 0; return; }
+  const fs = bubbleFont(f.s); ctx.font = `700 ${fs}px "Noto Sans KR", sans-serif`;
+  f.bw = ctx.measureText(f.msg).width + fs * 1.2; f.bh = fs * 1.8;
+}
+// 얼굴 하나가 차지하는 동그라미들: [얼굴] (+ [말풍선])
+function circles(f) {
+  const r = f.s / 2, out = [{ x: f.x, y: f.y, r }];
+  if (f.bw) out.push({ x: f.x, y: f.y - r - f.bh * .55, r: Math.max(f.bw / 2, f.bh * .7), bubble: true });
+  return out;
+}
+function settle(obstacle) {
+  const list = faces.filter((f) => !f.arriving && f.s > 2);
+  const gap = Math.min(W, H) * .012;
+  // 0) 화면 전체에 고르게 퍼지기 — 가까운 이웃과 살살 거리를 둠 (빈자리가 생기면 천천히 메워짐)
+  const spacing = Math.sqrt(W * H / Math.max(1, list.length)) * .92;
+  for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+    const A = list[i], B = list[j], dx = B.x - A.x, dy = B.y - A.y;
+    if (Math.abs(dx) > spacing || Math.abs(dy) > spacing) continue;
+    const d = Math.hypot(dx, dy) || .01; if (d >= spacing) continue;
+    const k = (spacing - d) * .012 / d;
+    A.x -= dx * k; A.y -= dy * k; B.x += dx * k; B.y += dy * k;
   }
-  for (const f of [...list.filter((q) => q.arriving), ...list.filter((q) => !q.arriving)]) {   // 새 얼굴이 가운데 칸 먼저
-    let best = null, bd = Infinity;
-    for (const c of cells) { if (c.used) continue; const d = (c.x - f.tx) ** 2 + (c.y - f.ty) ** 2; if (d < bd) { bd = d; best = c; } }
-    if (!best) { f.ts = 0; continue; }
-    best.used = true;
-    f.tx = best.x + f.jx * s * .5; f.ty = best.y + f.jy * s * .5; f.ts = s * 1.08 * f.scale;
+  for (let pass = 0; pass < 3; pass++) {
+    // 1) 서로 밀어내기
+    for (let i = 0; i < list.length; i++) {
+      const A = list[i], ca = circles(A);
+      for (let j = i + 1; j < list.length; j++) {
+        const B = list[j];
+        if (Math.abs(A.x - B.x) > (A.s + B.s) * 1.6 + 200 || Math.abs(A.y - B.y) > (A.s + B.s) * 1.6 + 80) continue;
+        const cb = circles(B);
+        for (const p of ca) for (const q of cb) {
+          let dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
+          const min = p.r + q.r + gap;
+          if (d >= min) continue;
+          if (d < .01) { dx = Math.random() - .5; dy = Math.random() - .5; d = Math.hypot(dx, dy); }
+          const push = (min - d) / 2 * .6, ux = dx / d, uy = dy / d;
+          A.x -= ux * push; A.y -= uy * push; B.x += ux * push; B.y += uy * push;
+        }
+      }
+    }
+    // 2) 가운데 새 얼굴 자리(비켜서기)
+    if (obstacle && obstacle.r > 0) for (const f of list) {
+      for (const c of circles(f)) {
+        const dx = c.x - obstacle.x, dy = c.y - obstacle.y, d = Math.hypot(dx, dy) || 1, min = obstacle.r + c.r + gap;
+        if (d < min) { const k = (min - d) * .5; f.x += dx / d * k; f.y += dy / d * k; }
+      }
+    }
+    // 3) 화면 밖·QR 카드 위로 못 가게
+    for (const f of list) {
+      const r = f.s / 2, top = r + (f.bw ? f.bh * 1.1 : 0) + 6;
+      f.x = Math.max(r + 6, Math.min(W - r - 6, f.x));
+      f.y = Math.max(top, Math.min(H - r - 6, f.y));
+      for (const z of zones) {
+        const l = f.x - r, rt = f.x + r, t = f.y - top, b = f.y + r;
+        if (rt <= z.l || l >= z.r || b <= z.t || t >= z.b) continue;
+        const mv = [z.l - rt, z.r - l, z.t - b, z.b - t];          // 왼·오·위·아래로 빠져나가는 거리
+        const k = mv.reduce((bi, v, i) => Math.abs(v) < Math.abs(mv[bi]) ? i : bi, 0);
+        if (k < 2) f.x += mv[k] * .5; else f.y += mv[k] * .5;
+      }
+    }
   }
 }
 
 /* =========================================================
-   새 얼굴 등장 — ① 모두 비켜서 쳐다봄 ② 색이 쏙 ③ 선이 그려짐 ④ 말풍선 ⑤ 무리 속으로
+   새 얼굴 등장 — ① 모두 비켜서 쳐다봄 ② 색이 쏙 ③ 선이 그려짐 ④ 말풍선 ⑤ 그 자리에서 작아지며 무리에 섞임
    ========================================================= */
 const queue = []; let spot = null;
 function nextSpot(now) {
   if (spot || !queue.length) return;
-  const f = queue.shift(), fast = queue.length >= 3;
-  const k = fast ? .45 : 1;
-  spot = { f, t0: now, T: { away: 650 * k, blob: 650 * k, line: 1700 * k, hold: 1500 * k, back: 1000 * k } };
+  const f = queue.shift(), k = queue.length >= 3 ? .45 : 1;
+  spot = { f, t0: now, T: { away: 700 * k, blob: 650 * k, line: 1700 * k, hold: 1500 * k, back: 1100 * k } };
   pop(520);
 }
 const ease = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 const back = (t) => { t = Math.min(1, Math.max(0, t)); const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
-function spotState(now) {   // 지금 단계와 '비켜서기' 정도
-  if (!spot) return null;
+function spotState(now, S) {
   const { t0, T } = spot, e = now - t0;
   const a = T.away, b = a + T.blob, l = b + T.line, h = l + T.hold, z = h + T.back;
-  let push;
-  if (e < a) push = ease(e / a); else if (e < h) push = 1; else push = 1 - ease((e - h) / T.back);
-  return { e, a, b, l, h, z, push };
+  const look = e < a ? ease(e / a) : e < h ? 1 : 1 - ease((e - h) / T.back);
+  // 가운데 비워 두는 동그라미: 커졌다가, 마지막엔 새 얼굴 크기로 줄어듦
+  const fs = faceSize() * spot.f.scale;
+  const big = S * .62, small = fs / 2;
+  const r = e < a ? big * ease(e / a) : e < h ? big : big + (small - big) * ease((e - h) / T.back);
+  return { e, a, b, l, h, z, look, r };
 }
 
 /* ---------- 그리기 ---------- */
-function bubble(x, y, text, fs, side = 1) {   // side 1: 오른쪽으로 뻗음, -1: 왼쪽
+function bubble(cx, bottom, text, fs) {   // 얼굴 위 가운데, 꼬리는 아래로
   ctx.font = `700 ${fs}px "Noto Sans KR", sans-serif`;
-  const w = ctx.measureText(text).width + fs * 1.2, h = fs * 1.8;
-  let bx = side > 0 ? x : x - w; bx = Math.max(6, Math.min(bx, W - w - 6)); const by = Math.max(h + 6, y);
+  const w = ctx.measureText(text).width + fs * 1.2, h = fs * 1.8, x = cx - w / 2, y = bottom - h;
   ctx.fillStyle = '#141418';
-  ctx.beginPath(); ctx.roundRect(bx, by - h, w, h, h / 2); ctx.fill();
-  const tx = side > 0 ? bx + fs * .6 : bx + w - fs * .6;
-  ctx.beginPath(); ctx.moveTo(tx - fs * .45, by - 2); ctx.lineTo(tx - side * fs * .5, by + fs * .6); ctx.lineTo(tx + fs * .45, by - 2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillText(text, bx + fs * .6, by - h / 2 + 1);
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(cx - fs * .4, y + h - 1); ctx.lineTo(cx, y + h + fs * .5); ctx.lineTo(cx + fs * .4, y + h - 1); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center'; ctx.fillText(text, cx, y + h / 2 + 1);
 }
 function frame(now) {
   requestAnimationFrame(frame);
   nextSpot(now);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
-  const t = now / 1000, k = .07, st = spotState(now);
-  const S = Math.min(W, H) * .4, cx = W / 2, cy = H * .46, clear = S * .78;
+  const t = now / 1000, S = Math.min(W, H) * .42, cx = W / 2, cy = H * .45;
+  const st = spot ? spotState(now, S) : null;
+  const base = faceSize();
+  for (const f of faces) { if (!f.arriving) { f.s += (base * f.scale - f.s) * .08; measureBubble(f); } }
+  settle(st ? { x: cx, y: cy, r: st.r } : null);
   for (const f of faces) {
-    f.x += (f.tx - f.x) * k; f.y += (f.ty - f.y) * k; f.s += (f.ts - f.s) * k;
-    if (f.arriving || f.s < 3) continue;
-    let dx = 0, dy = 0, look = 0;
+    if (f.arriving || f.s < 2) continue;
+    let look = 0;
     if (st) {
       const vx = f.x - cx, vy = f.y - cy, d = Math.hypot(vx, vy) || 1;
-      const need = Math.max(0, clear + f.s * .45 - d);                 // 가운데 동그라미 밖으로 밀림
-      dx = vx / d * need * st.push; dy = vy / d * need * st.push;
-      const near = Math.max(0, 1 - d / (Math.max(W, H) * .7));         // 가까울수록 더 쳐다봄
-      look = st.push * (.25 + near * .75);
-      f.lean += ((vx < 0 ? 1 : -1) * .32 * look - f.lean) * .15;        // 고개를 가운데로 기울임
+      look = st.look * (.35 + .65 * Math.max(0, 1 - d / (Math.max(W, H) * .6)));
+      f.lean += ((vx < 0 ? 1 : -1) * .35 * look - f.lean) * .15;      // 새 얼굴 쪽으로 고개 기울이기
     } else f.lean *= .9;
     const bob = Math.sin(t * f.speed * 1.5 + f.phase) * f.s * .03 * (1 - look * .8);
+    const hop = look ? -Math.abs(Math.sin(t * 9 + f.phase)) * f.s * .05 * look : 0;   // 놀라서 콩콩
     const sway = Math.sin(t * f.speed + f.phase) * .05 * (1 - look);
-    const hop = look ? -Math.abs(Math.sin(t * 9 + f.phase)) * f.s * .03 * look : 0;   // 놀라서 콩콩
-    const img = f.frames[Math.floor(now / 170 + f.phase * 3) % FRAMES];
-    ctx.save(); ctx.translate(f.x + dx, f.y + dy + bob + hop); ctx.rotate(f.rot * .5 + sway + f.lean);
-    ctx.drawImage(img, -f.s / 2, -f.s / 2, f.s, f.s);
+    ctx.save(); ctx.translate(f.x, f.y + bob + hop); ctx.rotate(f.rot * .5 + sway + f.lean);
+    ctx.drawImage(f.frames[Math.floor(now / 170 + f.phase * 3) % FRAMES], -f.s / 2, -f.s / 2, f.s, f.s);
     ctx.restore();
-    if (f.msg && f.s > 64 && !look) bubble(f.x + dx + f.s * .2, f.y + dy + bob - f.s * .32, f.msg, Math.max(11, Math.min(20, f.s * .12)));
   }
+  // 말풍선은 얼굴을 다 그린 뒤 맨 위에 (가려지지 않게)
+  for (const f of faces) if (!f.arriving && f.bw && f.s > 2) bubble(f.x, f.y - f.s / 2 - bubbleFont(f.s) * .3 + Math.sin(t * f.speed * 1.5 + f.phase) * f.s * .03, f.msg, bubbleFont(f.s));
   if (st) drawSpot(now, st, S, cx, cy);
 }
 function drawSpot(now, st, S, cx, cy) {
   const f = spot.f, { e, a, b, l, h, z } = st;
-  if (e >= z) { f.arriving = false; f.x = f.tx; f.y = f.ty; f.s = f.ts; spot = null; return; }
+  if (e >= z) { f.arriving = false; f.x = cx; f.y = cy; f.s = faceSize() * f.scale; spot = null; return; }
   if (e < a) return;   // 아직 비켜서는 중
   if (e < h) {
-    // ② 색이 쏙 (튀어나오듯 커짐) → ③ 선이 그려짐
     const nCol = f.order.filter((k) => !isLine(k.c)).reduce((n, k) => n + k.p.length, 0), nAll = f.order.reduce((n, k) => n + k.p.length, 0) || 1;
     const pb = Math.min(1, (e - a) / (b - a)), pl = Math.min(1, Math.max(0, (e - b) / (l - b)));
     const progress = (nCol * ease(pb) + (nAll - nCol) * ease(pl)) / nAll;
-    const sc = nCol ? back(pb) : 1, size = S * sc;
-    const breath = e > l ? 1 + Math.sin((e - l) / 140) * .015 : 1;
-    if (e > l) {   // 다 그려지면 손떨림 그림으로
-      ctx.save(); ctx.translate(cx, cy); ctx.scale(breath, breath);
-      ctx.drawImage(f.frames[Math.floor(now / 170) % FRAMES], -S / 2, -S / 2, S, S); ctx.restore();
-    } else drawFace(ctx, f.order, { x: cx - size / 2, y: cy - size / 2, size, box: f.box, progress });
-    // ④ 이름 말풍선 (레퍼런스처럼 검정 말풍선이 옆에서)
+    const size = S * (nCol ? back(pb) : 1);
+    if (e > l) { ctx.drawImage(f.frames[Math.floor(now / 170) % FRAMES], cx - S / 2, cy - S / 2, S, S); }
+    else drawFace(ctx, f.order, { x: cx - size / 2, y: cy - size / 2, size, box: f.box, progress });
     const ta = Math.min(1, Math.max(0, (e - b - (l - b) * .5) / 300));
     if (ta > 0) {
       ctx.globalAlpha = ta;
-      bubble(cx - S * .42, cy - S * .18, f.msg || `안녕! 나는 ${f.name || '누군가'}`, Math.round(S * .075), -1);
-      ctx.font = `900 ${Math.round(S * .09)}px "Noto Sans KR", sans-serif`; ctx.fillStyle = '#141418'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-      ctx.fillText(`${f.name || '누군가'}`, cx, cy + S * .62);
+      bubble(cx, cy - S * .5 - 8, f.msg || `안녕! 나는 ${f.name || '누군가'}`, Math.round(S * .075));
+      ctx.font = `900 ${Math.round(S * .085)}px "Noto Sans KR", sans-serif`; ctx.fillStyle = '#141418'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(f.name || '누군가', cx, cy + S * .52);
       ctx.globalAlpha = 1;
     }
     return;
   }
-  // ⑤ 작아지며 무리 속 자기 자리로
-  const p = ease((e - h) / (z - h));
-  const x = cx + (f.tx - cx) * p, y = cy + (f.ty - cy) * p, s = S + (f.ts - S) * p;
-  ctx.save(); ctx.translate(x, y); ctx.rotate(f.rot * .5 * p);
-  ctx.drawImage(f.frames[Math.floor(now / 170) % FRAMES], -s / 2, -s / 2, s, s);
-  ctx.restore();
+  // ⑤ 그 자리에서 작아짐 → 주변 얼굴들이 다시 모여듦
+  const p = ease((e - h) / (z - h)), s = S + (faceSize() * f.scale - S) * p;
+  ctx.drawImage(f.frames[Math.floor(now / 170) % FRAMES], cx - s / 2, cy - s / 2, s, s);
 }
 
 /* ---------- 소리 ---------- */
@@ -264,10 +298,8 @@ addEventListener('pointerdown', () => { try { ac = ac || new AudioContext(); ac.
 function addFace(id, v, arriving) {
   if (byId.has(id) || !v || !v.s) return;
   const f = makeFace(id, v, arriving);
-  if (arriving) { f.x = f.tx = W / 2; f.y = f.ty = H * .46; }          // 가운데 칸을 차지하도록
-  else { f.x = f.tx = W * Math.random(); f.y = f.ty = H * Math.random(); f.s = 0; }
   byId.set(id, f); faces.push(f); total++;
-  trim(); layout();
+  trim(); counts();
   if (arriving) queue.push(f);
 }
 function removeFace(id) {
@@ -275,12 +307,13 @@ function removeFace(id) {
   byId.delete(id); faces.splice(faces.indexOf(f), 1); total = Math.max(0, total - 1);
   const qi = queue.indexOf(f); if (qi >= 0) queue.splice(qi, 1);
   if (spot && spot.f === f) spot = null;
-  layout();
+  counts();
 }
 function trim() {
   const max = Math.max(5, settings.max | 0 || 80);
   while (faces.length > max) { const i = faces.findIndex((f) => !f.arriving); if (i < 0) break; const [f] = faces.splice(i, 1); byId.delete(f.id); }
 }
+function counts() { $('empty').hidden = faces.length > 0; $('countN').textContent = total; }
 
 /* ---------- 문구 · QR ---------- */
 function applySettings(s) {
@@ -289,7 +322,7 @@ function applySettings(s) {
   document.body.classList.toggle('notitle', !s.showTitle);
   $('qrcard').classList.toggle('closed', s.open === false);
   $('qrHow').textContent = s.open === false ? '지금은 잠시 받지 않아요' : 'QR 찍고 내 얼굴 그리기';
-  trim(); requestAnimationFrame(layout);
+  trim(); counts(); requestAnimationFrame(() => { zones = reserved(); });
 }
 function renderQr() {
   const url = pageUrl('play.html');
@@ -302,22 +335,30 @@ function demo() {
   const seed = (Date.now() + demoN++ * 977) >>> 0, R = rng(seed);
   addFace('demo' + seed, { s: demoFace(seed), name: DEMO_NAMES[Math.floor(R() * DEMO_NAMES.length)], msg: DEMO_MSGS[Math.floor(R() * DEMO_MSGS.length)], at: Date.now() }, true);
 }
+const ORDER = ['xs', 's', 'm', 'l'];
+function bump(d) {   // - / = 키로 얼굴 크기 바꾸기 (관리자 설정에도 저장)
+  const i = Math.max(0, Math.min(3, ORDER.indexOf(settings.size || 's') + d)), size = ORDER[i];
+  settings = { ...settings, size };
+  if (store) store.setSettings({ size }).catch(() => {});
+}
 addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
   if (k === 'f') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.().catch(() => {}); }
   else if (k === 'h') document.body.classList.toggle('helpoff');
-  else if (k === 'q') { $('qrcard').hidden = !$('qrcard').hidden; requestAnimationFrame(layout); }
-  else if (k === 't') { document.body.classList.toggle('notitle'); requestAnimationFrame(layout); }
+  else if (k === 'q') { $('qrcard').hidden = !$('qrcard').hidden; requestAnimationFrame(() => { zones = reserved(); }); }
+  else if (k === 't') { document.body.classList.toggle('notitle'); requestAnimationFrame(() => { zones = reserved(); }); }
   else if (k === 'd') demo();
+  else if (k === '-') bump(-1);
+  else if (k === '=' || k === '+') bump(1);
   else if (k === 'm') { sound = !sound; $('snd').textContent = sound ? '켜짐' : '꺼짐'; }
 });
 
 /* ---------- 시작 ---------- */
 resize(); renderQr(); requestAnimationFrame(frame);
 const qp = new URLSearchParams(location.search);
-if (qp.get('demo')) { const n = Math.min(150, +qp.get('demo') || 30); for (let i = 0; i < n; i++) addFace('demoI' + i, { s: demoFace(1000 + i * 31), name: DEMO_NAMES[i % 16], msg: i % 7 === 0 ? DEMO_MSGS[i % 10] : '', at: i }, false); }
+if (qp.get('demo')) { const n = Math.min(150, +qp.get('demo') || 30); for (let i = 0; i < n; i++) addFace('demoI' + i, { s: demoFace(1000 + i * 31), name: DEMO_NAMES[i % 16], msg: i % 4 === 0 ? DEMO_MSGS[i % 10] : '', at: i }, false); }
 try {
-  const store = await connect();
+  store = await connect();
   store.onConnected((ok) => { $('net').textContent = ok ? (LOCAL ? '● 연습 모드(이 브라우저 안에서만)' : '● 폰 연결 준비됨') : '● 연결 안 됨'; $('net').classList.toggle('off', !ok); });
   store.onSettings(applySettings);
   const initial = new Set(Object.keys(await store.getFaces()));
