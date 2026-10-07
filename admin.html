@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>FACE WALL · 관리자</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@600;700&family=Noto+Sans+KR:wght@500;700;900&display=swap">
+<style>
+/* 진행자 전용 — 받기 열기/멈춤, 큰 화면 문구, 얼굴 지우기 */
+:root{
+  --bg:#111216; --panel:#1A1C22; --line:#2A2D36; --ink:#F2F3F6; --sub:#9EA2AD; --yellow:#FFD23F; --warn:#FFB547; --red:#FF6B6B;
+  --display:'Anton','Archivo',sans-serif; --latin:'Archivo','Noto Sans KR',sans-serif; --ko:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;
+  color-scheme:dark;
+}
+*{ box-sizing:border-box }
+[hidden]{ display:none !important }
+body{ margin:0; background:var(--bg); color:var(--ink); font:500 15px/1.6 var(--ko) }
+.wrap{ max-width:880px; margin:0 auto; padding-inline:16px; padding-block:28px 60px; display:grid; gap:18px }
+header{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap }
+h1{ margin:0; font:400 34px/1 var(--display); letter-spacing:.03em }
+h1 span{ color:var(--yellow) }
+.room{ font:700 13px/1 var(--latin); letter-spacing:.12em; color:var(--sub) }
+section{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 18px 20px; display:grid; gap:14px }
+h2{ margin:0; font:900 17px/1.3 var(--ko) }
+h2 small{ font:500 13px/1 var(--ko); color:var(--sub); margin-left:6px }
+.note{ margin:0; font:500 13px/1.6 var(--ko); color:var(--sub) }
+.note b{ color:var(--ink) }
+.btn{ font:700 15px/1 var(--ko); border-radius:12px; padding:14px 18px; border:0; cursor:pointer }
+.btn.main{ background:var(--yellow); color:#101114 }
+.btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--line) }
+.btn.danger{ background:var(--warn); color:#101114 }
+.row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+.stats{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px }
+.stat{ background:#0D0E12; border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:grid; gap:4px }
+.stat span{ font:700 12px/1 var(--ko); color:var(--sub) }
+.stat b{ font:400 30px/1 var(--display); letter-spacing:.02em }
+.stat b small{ font:700 13px/1 var(--ko); color:var(--sub); margin-left:4px }
+.switch{ display:flex; align-items:center; gap:12px; background:#0D0E12; border:1px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer }
+.switch i{ position:relative; flex:none; width:52px; height:30px; border-radius:99px; background:#3A3D47; transition:background .2s }
+.switch i::after{ content:''; position:absolute; left:3px; top:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:transform .2s }
+.switch[aria-checked="true"] i{ background:#22C55E }
+.switch[aria-checked="true"] i::after{ transform:translateX(22px) }
+.switch b{ font:700 15px/1.3 var(--ko) }
+.switch small{ display:block; font:500 12px/1.4 var(--ko); color:var(--sub) }
+.fields{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px }
+.fields .wide{ grid-column:1 / -1 }
+@media (max-width:520px){ .fields{ grid-template-columns:1fr } .stats{ grid-template-columns:1fr 1fr } }
+.field{ display:grid; gap:6px }
+.field label{ font:700 13px/1 var(--ko); color:var(--sub) }
+.field input{ font:600 16px/1 var(--ko); color:var(--ink); background:#0D0E12; border:1px solid var(--line); border-radius:12px; padding:12px 13px; width:100% }
+.grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(132px, 1fr)); gap:10px }
+.card{ background:#0D0E12; border:1px solid var(--line); border-radius:14px; padding:8px; display:grid; gap:6px }
+.card canvas{ width:100%; aspect-ratio:1; background:#FBFAF6; border-radius:10px; display:block }
+.card b{ font:700 14px/1.2 var(--ko); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.card span{ font:500 12px/1.3 var(--ko); color:var(--sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-height:1.3em }
+.card button{ font:700 12px/1 var(--ko); padding:9px 0; border-radius:9px; border:1px solid var(--line); background:transparent; color:var(--sub); cursor:pointer }
+.card button.sure{ background:var(--red); color:#101114; border-color:transparent }
+.confirm{ display:grid; gap:10px; background:rgba(255,181,71,.08); border:1px solid rgba(255,181,71,.4); border-radius:12px; padding:14px }
+.empty{ color:var(--sub); font-size:14px }
+.links{ display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:center }
+.links img{ width:120px; height:120px; background:#fff; padding:8px; border-radius:10px; image-rendering:pixelated }
+.links a{ color:var(--yellow); font-weight:700; word-break:break-all }
+#gate{ min-height:100dvh; display:grid; place-content:center; justify-items:center; gap:14px; padding:24px; text-align:center }
+#gate input{ font:400 30px/1 var(--display); letter-spacing:.3em; text-align:center; width:200px; padding:12px; border-radius:12px; border:1px solid var(--line); background:#0D0E12; color:var(--ink) }
+button:focus-visible, input:focus-visible, a:focus-visible{ outline:2px solid var(--yellow); outline-offset:2px }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+
+<form id="gate">
+  <h1>FACE <span>WALL</span></h1>
+  <p class="note">진행자 비밀번호를 넣어 주세요</p>
+  <input id="pw" type="password" inputmode="numeric" autocomplete="off" aria-label="비밀번호">
+  <button class="btn main" type="submit">들어가기</button>
+  <p class="note" id="gateMsg"></p>
+</form>
+
+<div class="wrap" id="app" hidden>
+  <header>
+    <h1>FACE <span>WALL</span> · 관리자</h1>
+    <span class="room" id="roomName"></span>
+  </header>
+
+  <section aria-labelledby="h-now">
+    <h2 id="h-now">지금 상태</h2>
+    <div class="stats">
+      <div class="stat"><span>모인 얼굴</span><b id="sCount">0<small>개</small></b></div>
+      <div class="stat"><span>큰 화면에 보이는 수</span><b id="sShow">0<small>개</small></b></div>
+    </div>
+    <div class="switch" id="openSw" role="switch" tabindex="0" aria-checked="true">
+      <i></i><div><b id="openTxt">받는 중</b><small>끄면 폰에서 '보내기'가 잠겨요. 행사 시작 전이나 끝난 뒤에 꺼 두세요.</small></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-text">
+    <h2 id="h-text">큰 화면 문구</h2>
+    <div class="fields">
+      <div class="field"><label for="fEyebrow">작은 머리글</label><input id="fEyebrow" maxlength="24"></div>
+      <div class="field"><label for="fMax">한 화면에 보일 얼굴 수 (넘으면 오래된 것부터 빠져요)</label><input id="fMax" type="number" min="5" max="200"></div>
+      <div class="field"><label for="fT1">제목 첫 줄</label><input id="fT1" maxlength="16"></div>
+      <div class="field"><label for="fT2">제목 둘째 줄 (노란 밑줄)</label><input id="fT2" maxlength="16"></div>
+      <div class="field wide"><label for="fSub">설명</label><input id="fSub" maxlength="60"></div>
+    </div>
+    <div class="row"><button class="btn main" type="button" id="saveBtn">문구 저장</button><span class="note" id="saveNote"></span></div>
+  </section>
+
+  <section aria-labelledby="h-faces">
+    <h2 id="h-faces">모인 얼굴 <small>이상한 그림은 '지우기'를 두 번 누르면 큰 화면에서도 바로 사라져요</small></h2>
+    <div class="grid" id="grid"></div>
+    <p class="empty" id="gridEmpty">아직 들어온 얼굴이 없어요.</p>
+    <div class="row">
+      <button class="btn ghost" type="button" id="testBtn">연습 얼굴 5개 넣기</button>
+      <button class="btn ghost" type="button" id="testDelBtn">연습 얼굴만 지우기</button>
+      <button class="btn danger" type="button" id="clearBtn">모두 지우기</button>
+    </div>
+    <div class="confirm" id="clearBox" hidden>
+      <p class="note"><b>모인 얼굴이 모두 지워지고 되돌릴 수 없어요.</b> 큰 화면도 바로 비워져요.</p>
+      <div class="row"><button class="btn danger" type="button" id="clearYes">네, 모두 지우기</button><button class="btn ghost" type="button" id="clearNo">그만두기</button></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-link">
+    <h2 id="h-link">주소</h2>
+    <div class="links">
+      <img id="qr" alt="참가자 QR">
+      <p class="note">큰 화면: <a id="lScreen" target="_blank" rel="noopener"></a><br>참가자 폰: <a id="lPlay" target="_blank" rel="noopener"></a><br>다른 행사와 섞이지 않게 하려면 주소 끝에 <b>?room=행사이름</b>(영문)을 붙여 세 화면 모두 같은 이름으로 여세요.</p>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import { connect, unpack, drawFace, pageUrl, ROOM, PASSWORD, demoFace, enc, DEMO_NAMES, DEMO_MSGS, rng } from './core.js';
+const $ = (id) => document.getElementById(id);
+
+let ok = false; try { ok = sessionStorage.getItem('fw-admin') === '1'; } catch (e) {}
+$('gate').addEventListener('submit', (e) => { e.preventDefault(); if ($('pw').value === PASSWORD) { try { sessionStorage.setItem('fw-admin', '1'); } catch (err) {} start(); } else { $('gateMsg').textContent = '비밀번호가 달라요'; } });
+if (ok) start(); else $('pw').focus();
+
+async function start() {
+  $('gate').hidden = true; $('app').hidden = false;
+  $('roomName').textContent = 'ROOM · ' + ROOM;
+  const screen = pageUrl('index.html'), play = pageUrl('play.html');
+  $('lScreen').href = $('lScreen').textContent = screen;
+  $('lPlay').href = $('lPlay').textContent = play;
+  try { const q = qrcode(0, 'M'); q.addData(play); q.make(); $('qr').src = q.createDataURL(6, 0); } catch (e) {}
+
+  const store = await connect();
+  let settings = {};
+  const cards = new Map();
+
+  // 받기 스위치 · 문구
+  store.onSettings((s) => {
+    settings = s;
+    $('openSw').setAttribute('aria-checked', s.open !== false);
+    $('openTxt').textContent = s.open !== false ? '받는 중 · 폰에서 보낼 수 있어요' : '멈춤 · 폰에서 보낼 수 없어요';
+    if (!$('app').dataset.filled) {
+      $('app').dataset.filled = '1';
+      $('fEyebrow').value = s.eyebrow; $('fT1').value = s.title1; $('fT2').value = s.title2; $('fSub').value = s.sub; $('fMax').value = s.max;
+    }
+    paintCount();
+  });
+  const toggle = () => store.setSettings({ open: settings.open === false });
+  $('openSw').onclick = toggle; $('openSw').onkeydown = (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } };
+  $('saveBtn').onclick = async () => {
+    await store.setSettings({ eyebrow: $('fEyebrow').value.trim(), title1: $('fT1').value.trim(), title2: $('fT2').value.trim(), sub: $('fSub').value.trim(), max: Math.max(5, Math.min(200, +$('fMax').value | 0 || 80)) });
+    $('saveNote').textContent = '저장했어요 · 큰 화면에 바로 바뀌어요'; setTimeout(() => { $('saveNote').textContent = ''; }, 3000);
+  };
+
+  // 얼굴 목록 (새것이 앞)
+  function paintCount() {
+    $('sCount').innerHTML = `${cards.size}<small>개</small>`;
+    $('sShow').innerHTML = `${Math.min(cards.size, settings.max || 80)}<small>개</small>`;
+    $('gridEmpty').hidden = cards.size > 0;
+  }
+  store.onFaces((id, v) => {
+    if (cards.has(id) || !v) return;
+    const el = document.createElement('div'); el.className = 'card'; el.dataset.at = v.at || 0; el.dataset.demo = v.demo ? '1' : '';
+    el.innerHTML = '<canvas width="240" height="240"></canvas><b></b><span></span><button type="button">지우기</button>';
+    drawFace(el.querySelector('canvas').getContext('2d'), unpack(v.s), { x: 16, y: 16, size: 208 });
+    el.querySelector('b').textContent = (v.name || '이름 없음') + (v.demo ? ' (연습)' : '');
+    el.querySelector('span').textContent = [new Date(v.at || 0).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }), v.msg].filter(Boolean).join(' · ');
+    const b = el.querySelector('button');
+    b.onclick = () => {
+      if (!b.classList.contains('sure')) { b.classList.add('sure'); b.textContent = '한 번 더 누르면 삭제'; setTimeout(() => { b.classList.remove('sure'); b.textContent = '지우기'; }, 2500); return; }
+      store.removeFace(id);
+    };
+    cards.set(id, el);
+    const grid = $('grid'), after = [...grid.children].find((c) => +c.dataset.at < (v.at || 0));
+    grid.insertBefore(el, after || null);
+    paintCount();
+  }, (id) => { const el = cards.get(id); if (el) { el.remove(); cards.delete(id); paintCount(); } });
+
+  // 연습 얼굴
+  $('testBtn').onclick = async () => {
+    for (let i = 0; i < 5; i++) {
+      const seed = (Date.now() + i * 991) >>> 0, R = rng(seed);
+      await store.addFace({ demo: true, name: DEMO_NAMES[Math.floor(R() * 16)], msg: DEMO_MSGS[Math.floor(R() * 10)], at: Date.now(), s: demoFace(seed).map((k) => ({ c: k.c, w: k.w, p: enc(k.p) })) });
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  };
+  $('testDelBtn').onclick = () => { for (const [id, el] of cards) if (el.dataset.demo) store.removeFace(id); };
+  $('clearBtn').onclick = () => { $('clearBox').hidden = false; };
+  $('clearNo').onclick = () => { $('clearBox').hidden = true; };
+  $('clearYes').onclick = async () => { await store.clearFaces(); $('clearBox').hidden = true; };
+}
+</script>
+</body>
+</html>
