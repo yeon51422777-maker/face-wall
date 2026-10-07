@@ -47,6 +47,13 @@ canvas{ position:fixed; inset:0; width:100%; height:100%; display:block }
 body.clean #help, body.clean #qrcard, body.clean #title{ display:none }
 body.notitle #title{ display:none }
 body.helpoff #help{ display:none }
+
+/* 오른쪽 위 내 캐릭터 (얼굴 누끼 PNG: character.png) · 아래 저작권 */
+#mascot{ right:2.4vmin; top:2vmin; width:12vmin; height:auto; pointer-events:none; filter:drop-shadow(0 .8vmin 1.4vmin rgba(20,20,24,.18)); animation:bob 3.2s ease-in-out infinite; transform-origin:50% 90% }
+@keyframes bob{ 0%,100%{ transform:translateY(0) rotate(-3deg) } 50%{ transform:translateY(-.8vmin) rotate(3deg) } }
+#copy{ right:2.4vmin; bottom:1.6vmin; font:600 1.3vmin/1.4 var(--latin); color:#A0A3AC; text-align:right; pointer-events:none }
+body.clean #mascot, body.clean #copy{ display:none }
+@media (prefers-reduced-motion: reduce){ #mascot{ animation:none } }
 </style>
 </head>
 <body class="notitle">
@@ -57,6 +64,9 @@ body.helpoff #help{ display:none }
   <h1><span id="t1"></span><br><u id="t2"></u></h1>
   <p class="sub" id="tSub"></p>
 </header>
+
+<img class="ov" id="mascot" src="character.png" alt="" onerror="this.remove()">
+<p class="ov" id="copy">© 에듀테크리더스 · edu@eduleader.kr</p>
 
 <aside class="ov" id="qrcard">
   <img id="qr" alt="참여 QR 코드">
@@ -114,7 +124,7 @@ function makeFace(id, v, arriving) {
    ========================================================= */
 function reserved() {
   const out = [];
-  for (const id of ['title', 'qrcard']) {
+  for (const id of ['title', 'qrcard', 'mascot', 'copy']) {
     const el = $(id); if (!el) continue;
     const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue;
     const m = 10; out.push({ l: r.left - m, t: r.top - m, r: r.right + m, b: r.bottom + m });

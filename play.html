@@ -99,6 +99,8 @@ button{ font:inherit; color:inherit; cursor:pointer }
 .done canvas{ display:block; width:180px; height:180px; margin:0 auto; background:#fff; animation:boing .6s cubic-bezier(.2,1.5,.4,1) both }
 @keyframes boing{ from{ transform:scale(.3); opacity:0 } }
 @media (prefers-reduced-motion: reduce){ .done canvas{ animation:none } }
+.copy{ flex:none; text-align:center; font-size:11px; color:#404040; padding:3px 0 0 }
+.copy a{ color:#000080 }
 </style>
 </head>
 <body>
@@ -144,6 +146,7 @@ button{ font:inherit; color:inherit; cursor:pointer }
     <button class="btn go" type="button" id="doneBtn" disabled>큰 화면으로 보내기 ▶</button>
   </div>
   <div class="status" id="status"><span class="sunken" id="hint">큰 붓으로 얼굴을 칠하고, 연필로 눈·코·입을 그려요</span><span class="sunken" id="xy"></span></div>
+  <div class="copy">© 에듀테크리더스 · <a href="mailto:edu@eduleader.kr">edu@eduleader.kr</a></div>
 </div>
 
 <!-- 보내기 대화상자 -->
