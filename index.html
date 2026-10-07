@@ -90,7 +90,7 @@ addEventListener('resize', resize);
 const FRAMES = 3, RES = 260;
 const faces = [], byId = new Map();
 let settings = { max: 80, size: 's' }, total = 0, zones = [];
-const SIZE = { xs: .065, s: .09, m: .13, l: .18 };   // 화면 짧은 변 대비 얼굴 크기
+const SIZE = { xs: .1, s: .135, m: .195, l: .27 };   // 화면 짧은 변 대비 얼굴 크기
 
 function makeFace(id, v, arriving) {
   const strokes = unpack(v.s), box = bbox(strokes), h = hash(id), R = rng(h);

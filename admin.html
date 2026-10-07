@@ -4,137 +4,205 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>FACE WALL · 관리자</title>
+<title>FACE WALL · 대시보드</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@600;700&family=Noto+Sans+KR:wght@500;700;900&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <style>
-/* 진행자 전용 — 받기 열기/멈춤, 큰 화면 문구, 얼굴 지우기 */
+/* 진행자 대시보드 — 모인 얼굴 보기·지우기·저장, 큰 화면 설정 */
 :root{
-  --bg:#111216; --panel:#1A1C22; --line:#2A2D36; --ink:#F2F3F6; --sub:#9EA2AD; --yellow:#FFD23F; --warn:#FFB547; --red:#FF6B6B;
+  --bg:#111216; --panel:#1A1C22; --panel2:#0D0E12; --line:#2A2D36; --ink:#F2F3F6; --sub:#9EA2AD; --yellow:#FFD23F; --warn:#FFB547; --red:#FF6B6B; --green:#22C55E;
   --display:'Anton','Archivo',sans-serif; --latin:'Archivo','Noto Sans KR',sans-serif; --ko:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;
   color-scheme:dark;
 }
 *{ box-sizing:border-box }
 [hidden]{ display:none !important }
 body{ margin:0; background:var(--bg); color:var(--ink); font:500 15px/1.6 var(--ko) }
-.wrap{ max-width:880px; margin:0 auto; padding-inline:16px; padding-block:28px 60px; display:grid; gap:18px }
-header{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap }
-h1{ margin:0; font:400 34px/1 var(--display); letter-spacing:.03em }
-h1 span{ color:var(--yellow) }
-.room{ font:700 13px/1 var(--latin); letter-spacing:.12em; color:var(--sub) }
-section{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 18px 20px; display:grid; gap:14px }
+button, input, select{ font:inherit; color:inherit }
+button{ cursor:pointer }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, [role=switch]:focus-visible{ outline:2px solid var(--yellow); outline-offset:2px }
+
+/* 비밀번호 */
+#gate{ min-height:100dvh; display:grid; place-content:center; justify-items:center; gap:14px; padding:24px; text-align:center }
+#gate input{ font:400 30px/1 var(--display); letter-spacing:.3em; text-align:center; width:200px; padding:12px; border-radius:12px; border:1px solid var(--line); background:var(--panel2) }
+.logo{ margin:0; font:400 34px/1 var(--display); letter-spacing:.03em }
+.logo span{ color:var(--yellow) }
+
+/* 위쪽 막대 */
+.top{ position:sticky; top:0; z-index:10; background:rgba(17,18,22,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line) }
+.top .in{ max-width:1200px; margin:0 auto; padding:12px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap }
+.top .logo{ font-size:26px }
+.live{ display:inline-flex; align-items:center; gap:6px; font:700 12px/1 var(--latin); letter-spacing:.1em; color:var(--sub) }
+.live i{ width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.25) }
+.live.off i{ background:var(--red); box-shadow:0 0 0 3px rgba(255,107,107,.25) }
+.grow{ flex:1 }
+.tabs{ display:flex; gap:4px; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:4px }
+.tabs button{ border:0; background:transparent; padding:8px 14px; border-radius:9px; font:700 14px/1 var(--ko); color:var(--sub) }
+.tabs button[aria-selected="true"]{ background:var(--yellow); color:#101114 }
+.open-link{ font:700 13px/1 var(--ko); color:var(--yellow); text-decoration:none; border:1px solid var(--line); border-radius:10px; padding:9px 12px }
+
+.wrap{ max-width:1200px; margin:0 auto; padding:20px 16px 60px; display:grid; gap:16px }
+section.panel{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; display:grid; gap:14px }
 h2{ margin:0; font:900 17px/1.3 var(--ko) }
 h2 small{ font:500 13px/1 var(--ko); color:var(--sub); margin-left:6px }
 .note{ margin:0; font:500 13px/1.6 var(--ko); color:var(--sub) }
 .note b{ color:var(--ink) }
-.btn{ font:700 15px/1 var(--ko); border-radius:12px; padding:14px 18px; border:0; cursor:pointer }
-.btn.main{ background:var(--yellow); color:#101114 }
-.btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--line) }
-.btn.danger{ background:var(--warn); color:#101114 }
-.row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
-.stats{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px }
-.stat{ background:#0D0E12; border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:grid; gap:4px }
+
+/* 숫자 */
+.stats{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:10px }
+@media (max-width:760px){ .stats{ grid-template-columns:repeat(2, minmax(0, 1fr)) } }
+.stat{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px; display:grid; gap:6px; align-content:start }
 .stat span{ font:700 12px/1 var(--ko); color:var(--sub) }
-.stat b{ font:400 30px/1 var(--display); letter-spacing:.02em }
+.stat b{ font:400 34px/1 var(--display); letter-spacing:.02em; font-variant-numeric:tabular-nums }
 .stat b small{ font:700 13px/1 var(--ko); color:var(--sub); margin-left:4px }
-.switch{ display:flex; align-items:center; gap:12px; background:#0D0E12; border:1px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer }
+.stat em{ font:500 12px/1.4 var(--ko); color:var(--sub); font-style:normal }
+.switch{ display:flex; align-items:center; gap:12px; cursor:pointer }
 .switch i{ position:relative; flex:none; width:52px; height:30px; border-radius:99px; background:#3A3D47; transition:background .2s }
 .switch i::after{ content:''; position:absolute; left:3px; top:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:transform .2s }
-.switch[aria-checked="true"] i{ background:#22C55E }
+.switch[aria-checked="true"] i{ background:var(--green) }
 .switch[aria-checked="true"] i::after{ transform:translateX(22px) }
 .switch b{ font:700 15px/1.3 var(--ko) }
-.switch small{ display:block; font:500 12px/1.4 var(--ko); color:var(--sub) }
+
+/* 도구 줄 */
+.bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+.search{ flex:1; min-width:180px; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:11px 13px }
+.sel{ background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:11px 12px }
+.btn{ font:700 14px/1 var(--ko); border-radius:12px; padding:12px 16px; border:0 }
+.btn.main{ background:var(--yellow); color:#101114 }
+.btn.ghost{ background:transparent; border:1px solid var(--line) }
+.btn.ghost[aria-pressed="true"]{ background:var(--ink); color:#101114; border-color:transparent }
+.btn.danger{ background:var(--red); color:#101114 }
+.btn:disabled{ opacity:.35; cursor:default }
+.confirm{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:rgba(255,107,107,.08); border:1px solid rgba(255,107,107,.4); border-radius:12px; padding:12px 14px }
+.confirm p{ flex:1; min-width:200px }
+
+/* 얼굴 카드 */
+.grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(168px, 1fr)); gap:12px }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:8px; display:grid; gap:6px; transition:border-color .15s, transform .15s }
+.card.new{ animation:pop .6s cubic-bezier(.2,1.4,.4,1) }
+@keyframes pop{ from{ transform:scale(.85); opacity:0 } }
+.card .thumb{ position:relative; border-radius:11px; overflow:hidden; background:#fff }
+.card canvas{ display:block; width:100%; aspect-ratio:1 }
+.card .chk{ position:absolute; left:8px; top:8px; width:26px; height:26px; border-radius:8px; border:2px solid #101114; background:#fff; display:none; place-items:center; font:900 16px/1 var(--ko); color:#101114 }
+.selecting .card .chk{ display:grid }
+.selecting .card{ cursor:pointer }
+.card.picked{ border-color:var(--yellow); box-shadow:0 0 0 2px var(--yellow) }
+.card.picked .chk{ background:var(--yellow) }
+.card .tag{ position:absolute; right:8px; top:8px; font:700 11px/1 var(--ko); background:#101114; color:#fff; padding:5px 7px; border-radius:99px }
+.card b{ font:700 15px/1.25 var(--ko); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 2px }
+.card .meta{ font:500 12px/1.35 var(--ko); color:var(--sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 2px; min-height:1.35em }
+.card .acts{ display:grid; grid-template-columns:1fr 1fr; gap:6px }
+.card .acts button{ font:700 12px/1 var(--ko); padding:10px 0; border-radius:9px; border:1px solid var(--line); background:transparent; color:var(--sub) }
+.card .acts button:hover{ color:var(--ink) }
+.card .acts button.sure{ background:var(--red); color:#101114; border-color:transparent }
+.selecting .card .acts{ visibility:hidden }
+.empty{ color:var(--sub); font-size:14px; padding:30px 0; text-align:center }
+
+/* 설정 */
 .fields{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px }
 .fields .wide{ grid-column:1 / -1 }
-@media (max-width:520px){ .fields{ grid-template-columns:1fr } .stats{ grid-template-columns:1fr 1fr } }
+@media (max-width:560px){ .fields{ grid-template-columns:1fr } }
 .field{ display:grid; gap:6px }
-.field label{ font:700 13px/1 var(--ko); color:var(--sub) }
-.field input{ font:600 16px/1 var(--ko); color:var(--ink); background:#0D0E12; border:1px solid var(--line); border-radius:12px; padding:12px 13px; width:100% }
-.grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(132px, 1fr)); gap:10px }
-.card{ background:#0D0E12; border:1px solid var(--line); border-radius:14px; padding:8px; display:grid; gap:6px }
-.card canvas{ width:100%; aspect-ratio:1; background:#FBFAF6; border-radius:10px; display:block }
-.card b{ font:700 14px/1.2 var(--ko); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-.card span{ font:500 12px/1.3 var(--ko); color:var(--sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-height:1.3em }
-.card button{ font:700 12px/1 var(--ko); padding:9px 0; border-radius:9px; border:1px solid var(--line); background:transparent; color:var(--sub); cursor:pointer }
-.card button.sure{ background:var(--red); color:#101114; border-color:transparent }
-.confirm{ display:grid; gap:10px; background:rgba(255,181,71,.08); border:1px solid rgba(255,181,71,.4); border-radius:12px; padding:14px }
-.empty{ color:var(--sub); font-size:14px }
-.links{ display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:center }
-.links img{ width:120px; height:120px; background:#fff; padding:8px; border-radius:10px; image-rendering:pixelated }
+.field label{ font:700 13px/1.3 var(--ko); color:var(--sub) }
+.field input, .field select{ font:600 16px/1 var(--ko); background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px 13px; width:100% }
+.check{ display:flex; gap:10px; align-items:center; cursor:pointer }
+.check input{ width:20px; height:20px }
+.links{ display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center }
+.links img{ width:140px; height:140px; background:#fff; padding:8px; border-radius:12px; image-rendering:pixelated }
 .links a{ color:var(--yellow); font-weight:700; word-break:break-all }
-#gate{ min-height:100dvh; display:grid; place-content:center; justify-items:center; gap:14px; padding:24px; text-align:center }
-#gate input{ font:400 30px/1 var(--display); letter-spacing:.3em; text-align:center; width:200px; padding:12px; border-radius:12px; border:1px solid var(--line); background:#0D0E12; color:var(--ink) }
-button:focus-visible, input:focus-visible, a:focus-visible{ outline:2px solid var(--yellow); outline-offset:2px }
+@media (max-width:520px){ .links{ grid-template-columns:1fr } }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
 <body>
 
 <form id="gate">
-  <h1>FACE <span>WALL</span></h1>
+  <h1 class="logo">FACE <span>WALL</span></h1>
   <p class="note">진행자 비밀번호를 넣어 주세요</p>
   <input id="pw" type="password" inputmode="numeric" autocomplete="off" aria-label="비밀번호">
   <button class="btn main" type="submit">들어가기</button>
   <p class="note" id="gateMsg"></p>
 </form>
 
-<div class="wrap" id="app" hidden>
-  <header>
-    <h1>FACE <span>WALL</span> · 관리자</h1>
-    <span class="room" id="roomName"></span>
-  </header>
+<div id="app" hidden>
+  <header class="top"><div class="in">
+    <h1 class="logo">FACE <span>WALL</span></h1>
+    <span class="live" id="live"><i></i><span id="liveTxt">연결 중</span></span>
+    <span class="grow"></span>
+    <nav class="tabs" role="tablist" aria-label="화면 고르기">
+      <button type="button" role="tab" aria-selected="true" data-tab="faces">얼굴 관리</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="settings">화면 설정</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="links">주소 · QR</button>
+    </nav>
+    <a class="open-link" id="openScreen" target="_blank" rel="noopener">큰 화면 열기 ↗</a>
+  </div></header>
 
-  <section aria-labelledby="h-now">
-    <h2 id="h-now">지금 상태</h2>
+  <main class="wrap">
+    <!-- 숫자 -->
     <div class="stats">
-      <div class="stat"><span>모인 얼굴</span><b id="sCount">0<small>개</small></b></div>
-      <div class="stat"><span>큰 화면에 보이는 수</span><b id="sShow">0<small>개</small></b></div>
+      <div class="stat"><span>모인 얼굴</span><b id="sCount">0<small>개</small></b><em id="sToday"></em></div>
+      <div class="stat"><span>큰 화면에 보이는 수</span><b id="sShow">0<small>개</small></b><em id="sMax"></em></div>
+      <div class="stat"><span>이 크기로 넉넉히 들어가는 수</span><b id="sFit">0<small>개</small></b><em>넘으면 얼굴이 조금씩 작아져요</em></div>
+      <div class="stat"><span>폰에서 보내기</span><div class="switch" id="openSw" role="switch" tabindex="0" aria-checked="true"><i></i><b id="openTxt">받는 중</b></div><em>끄면 폰의 보내기가 잠겨요</em></div>
     </div>
-    <div class="switch" id="openSw" role="switch" tabindex="0" aria-checked="true">
-      <i></i><div><b id="openTxt">받는 중</b><small>끄면 폰에서 '보내기'가 잠겨요. 행사 시작 전이나 끝난 뒤에 꺼 두세요.</small></div>
-    </div>
-  </section>
 
-  <section aria-labelledby="h-text">
-    <h2 id="h-text">큰 화면 문구</h2>
-    <div class="fields">
-      <div class="field"><label for="fEyebrow">작은 머리글</label><input id="fEyebrow" maxlength="24"></div>
-      <div class="field"><label for="fMax">한 화면에 보일 얼굴 수 (넘으면 오래된 것부터 빠져요)</label><input id="fMax" type="number" min="5" max="200"></div>
-      <div class="field"><label for="fT1">제목 첫 줄</label><input id="fT1" maxlength="16"></div>
-      <div class="field"><label for="fT2">제목 둘째 줄 (노란 밑줄)</label><input id="fT2" maxlength="16"></div>
-      <div class="field wide"><label for="fSub">설명</label><input id="fSub" maxlength="60"></div>
-      <div class="field"><label for="fSize">얼굴 크기 (큰 화면)</label><select id="fSize" style="font:600 16px/1 var(--ko);color:var(--ink);background:#0D0E12;border:1px solid var(--line);border-radius:12px;padding:12px 13px"><option value="xs">아주 작게</option><option value="s">작게 (기본)</option><option value="m">보통</option><option value="l">크게</option></select></div>
-      <label class="field wide" style="display:flex;gap:8px;align-items:center;cursor:pointer"><input id="fShow" type="checkbox" style="width:20px;height:20px"> <span>큰 화면 왼쪽 위에 제목 보이기 (끄면 레퍼런스처럼 얼굴만 가득)</span></label>
-    </div>
-    <div class="row"><button class="btn main" type="button" id="saveBtn">문구 저장</button><span class="note" id="saveNote"></span></div>
-  </section>
+    <!-- 얼굴 관리 -->
+    <section class="panel" data-pane="faces" aria-labelledby="h-faces">
+      <h2 id="h-faces">모인 얼굴 <small>지우면 큰 화면에서도 바로 사라져요</small></h2>
+      <div class="bar">
+        <input class="search" id="q" type="search" placeholder="이름이나 한마디로 찾기" aria-label="찾기">
+        <select class="sel" id="sort" aria-label="정렬"><option value="new">최신순</option><option value="old">오래된순</option><option value="name">이름순</option></select>
+        <button class="btn ghost" type="button" id="selBtn" aria-pressed="false">여러 개 고르기</button>
+        <button class="btn ghost" type="button" id="allBtn" hidden>보이는 것 모두 고르기</button>
+        <button class="btn danger" type="button" id="delSelBtn" hidden disabled>고른 것 지우기</button>
+      </div>
+      <div class="confirm" id="delBox" hidden>
+        <p class="note"><b id="delMsg"></b> 지우면 되돌릴 수 없어요.</p>
+        <button class="btn danger" type="button" id="delYes">네, 지우기</button><button class="btn ghost" type="button" id="delNo">그만두기</button>
+      </div>
+      <div class="grid" id="grid"></div>
+      <p class="empty" id="gridEmpty">아직 들어온 얼굴이 없어요. 폰으로 QR을 찍어 그려 보세요.</p>
+    </section>
 
-  <section aria-labelledby="h-faces">
-    <h2 id="h-faces">모인 얼굴 <small>이상한 그림은 '지우기'를 두 번 누르면 큰 화면에서도 바로 사라져요</small></h2>
-    <div class="grid" id="grid"></div>
-    <p class="empty" id="gridEmpty">아직 들어온 얼굴이 없어요.</p>
-    <div class="row">
-      <button class="btn ghost" type="button" id="testBtn">연습 얼굴 5개 넣기</button>
-      <button class="btn ghost" type="button" id="testDelBtn">연습 얼굴만 지우기</button>
-      <button class="btn danger" type="button" id="clearBtn">모두 지우기</button>
-    </div>
-    <div class="confirm" id="clearBox" hidden>
-      <p class="note"><b>모인 얼굴이 모두 지워지고 되돌릴 수 없어요.</b> 큰 화면도 바로 비워져요.</p>
-      <div class="row"><button class="btn danger" type="button" id="clearYes">네, 모두 지우기</button><button class="btn ghost" type="button" id="clearNo">그만두기</button></div>
-    </div>
-  </section>
+    <!-- 화면 설정 -->
+    <section class="panel" data-pane="settings" hidden aria-labelledby="h-set">
+      <h2 id="h-set">큰 화면 설정</h2>
+      <div class="fields">
+        <div class="field"><label for="fSize">얼굴 크기</label><select id="fSize"><option value="xs">아주 작게</option><option value="s">작게 (기본)</option><option value="m">보통</option><option value="l">크게</option></select></div>
+        <div class="field"><label for="fMax">한 화면에 보일 얼굴 수 (넘으면 오래된 것부터 빠져요)</label><input id="fMax" type="number" min="5" max="200"></div>
+        <label class="check wide"><input id="fShow" type="checkbox"> <span>왼쪽 위에 제목 보이기 (끄면 레퍼런스처럼 얼굴만 가득)</span></label>
+        <div class="field"><label for="fEyebrow">작은 머리글</label><input id="fEyebrow" maxlength="24"></div>
+        <div class="field"><label for="fSub">설명</label><input id="fSub" maxlength="60"></div>
+        <div class="field"><label for="fT1">제목 첫 줄</label><input id="fT1" maxlength="16"></div>
+        <div class="field"><label for="fT2">제목 둘째 줄 (노란 밑줄)</label><input id="fT2" maxlength="16"></div>
+      </div>
+      <div class="bar"><button class="btn main" type="button" id="saveBtn">저장</button><span class="note" id="saveNote"></span></div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+      <h2>연습 · 정리</h2>
+      <div class="bar">
+        <button class="btn ghost" type="button" id="testBtn">연습 얼굴 5개 넣기</button>
+        <button class="btn ghost" type="button" id="testDelBtn">연습 얼굴만 지우기</button>
+        <button class="btn danger" type="button" id="clearBtn">모두 지우기</button>
+      </div>
+      <div class="confirm" id="clearBox" hidden>
+        <p class="note"><b>모인 얼굴이 모두 지워지고 되돌릴 수 없어요.</b> 큰 화면도 바로 비워져요.</p>
+        <button class="btn danger" type="button" id="clearYes">네, 모두 지우기</button><button class="btn ghost" type="button" id="clearNo">그만두기</button>
+      </div>
+    </section>
 
-  <section aria-labelledby="h-link">
-    <h2 id="h-link">주소</h2>
-    <div class="links">
-      <img id="qr" alt="참가자 QR">
-      <p class="note">큰 화면: <a id="lScreen" target="_blank" rel="noopener"></a><br>참가자 폰: <a id="lPlay" target="_blank" rel="noopener"></a><br>다른 행사와 섞이지 않게 하려면 주소 끝에 <b>?room=행사이름</b>(영문)을 붙여 세 화면 모두 같은 이름으로 여세요.</p>
-    </div>
-  </section>
+    <!-- 주소 -->
+    <section class="panel" data-pane="links" hidden aria-labelledby="h-link">
+      <h2 id="h-link">주소 · QR</h2>
+      <div class="links">
+        <img id="qr" alt="참가자 QR">
+        <p class="note">큰 화면: <a id="lScreen" target="_blank" rel="noopener"></a><br>참가자 폰: <a id="lPlay" target="_blank" rel="noopener"></a><br>대시보드: <a id="lAdmin" target="_blank" rel="noopener"></a><br><br>다른 행사와 섞이지 않게 하려면 주소 끝에 <b>?room=행사이름</b>(영문)을 붙여 세 화면 모두 같은 이름으로 여세요.</p>
+      </div>
+    </section>
+  </main>
 </div>
 
 <script type="module">
 import { connect, unpack, drawFace, pageUrl, ROOM, PASSWORD, demoFace, enc, DEMO_NAMES, DEMO_MSGS, rng } from './core.js';
 const $ = (id) => document.getElementById(id);
+const SIZE = { xs: .1, s: .135, m: .195, l: .27 };   // index.html과 같은 값
 
 let ok = false; try { ok = sessionStorage.getItem('fw-admin') === '1'; } catch (e) {}
 $('gate').addEventListener('submit', (e) => { e.preventDefault(); if ($('pw').value === PASSWORD) { try { sessionStorage.setItem('fw-admin', '1'); } catch (err) {} start(); } else { $('gateMsg').textContent = '비밀번호가 달라요'; } });
@@ -142,26 +210,38 @@ if (ok) start(); else $('pw').focus();
 
 async function start() {
   $('gate').hidden = true; $('app').hidden = false;
-  $('roomName').textContent = 'ROOM · ' + ROOM;
   const screen = pageUrl('index.html'), play = pageUrl('play.html');
+  $('openScreen').href = screen;
   $('lScreen').href = $('lScreen').textContent = screen;
   $('lPlay').href = $('lPlay').textContent = play;
+  $('lAdmin').href = $('lAdmin').textContent = pageUrl('admin.html');
   try { const q = qrcode(0, 'M'); q.addData(play); q.make(); $('qr').src = q.createDataURL(6, 0); } catch (e) {}
+
+  // 탭
+  document.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('[data-tab]').forEach((x) => x.setAttribute('aria-selected', x === b));
+    document.querySelectorAll('[data-pane]').forEach((p) => p.hidden = p.dataset.pane !== b.dataset.tab);
+  });
 
   const store = await connect();
   let settings = {};
-  const cards = new Map();
+  const faces = new Map();      // id → { v, el }
+  const picked = new Set();
+  let selecting = false, booted = false;
+  setTimeout(() => { booted = true; }, 1500);   // 처음 불러온 것은 '새로 들어옴' 효과 없이
 
-  // 받기 스위치 · 문구
+  store.onConnected((on) => { $('live').classList.toggle('off', !on); $('liveTxt').textContent = on ? '실시간 연결됨' : '연결 끊김'; });
+
+  /* ---------- 설정 ---------- */
   store.onSettings((s) => {
     settings = s;
     $('openSw').setAttribute('aria-checked', s.open !== false);
-    $('openTxt').textContent = s.open !== false ? '받는 중 · 폰에서 보낼 수 있어요' : '멈춤 · 폰에서 보낼 수 없어요';
+    $('openTxt').textContent = s.open !== false ? '받는 중' : '멈춤';
     if (!$('app').dataset.filled) {
       $('app').dataset.filled = '1';
       $('fEyebrow').value = s.eyebrow; $('fT1').value = s.title1; $('fT2').value = s.title2; $('fSub').value = s.sub; $('fMax').value = s.max; $('fShow').checked = !!s.showTitle; $('fSize').value = s.size || 's';
     }
-    paintCount();
+    stats();
   });
   const toggle = () => store.setSettings({ open: settings.open === false });
   $('openSw').onclick = toggle; $('openSw').onkeydown = (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } };
@@ -170,31 +250,86 @@ async function start() {
     $('saveNote').textContent = '저장했어요 · 큰 화면에 바로 바뀌어요'; setTimeout(() => { $('saveNote').textContent = ''; }, 3000);
   };
 
-  // 얼굴 목록 (새것이 앞)
-  function paintCount() {
-    $('sCount').innerHTML = `${cards.size}<small>개</small>`;
-    $('sShow').innerHTML = `${Math.min(cards.size, settings.max || 80)}<small>개</small>`;
-    $('gridEmpty').hidden = cards.size > 0;
+  /* ---------- 숫자 ---------- */
+  // 큰 화면(1920×1080 기준)에서 고른 크기 그대로 들어가는 대략적인 수 — index.html의 계산과 같음
+  function stats() {
+    const n = faces.size, max = settings.max || 80;
+    const today = [...faces.values()].filter((f) => new Date(f.v.at || 0).toDateString() === new Date().toDateString()).length;
+    $('sCount').innerHTML = `${n}<small>개</small>`; $('sToday').textContent = `오늘 들어온 얼굴 ${today}개`;
+    $('sShow').innerHTML = `${Math.min(n, max)}<small>개</small>`; $('sMax').textContent = `최대 ${max}개까지 보여요`;
+    const s = 1080 * (SIZE[settings.size] || SIZE.s);
+    $('sFit').innerHTML = `${Math.floor(1920 * 1080 * .42 / (s * s))}<small>개</small>`;
+    $('gridEmpty').hidden = n > 0;
   }
-  store.onFaces((id, v) => {
-    if (cards.has(id) || !v) return;
-    const el = document.createElement('div'); el.className = 'card'; el.dataset.at = v.at || 0; el.dataset.demo = v.demo ? '1' : '';
-    el.innerHTML = '<canvas width="240" height="240"></canvas><b></b><span></span><button type="button">지우기</button>';
-    drawFace(el.querySelector('canvas').getContext('2d'), unpack(v.s), { x: 16, y: 16, size: 208 });
-    el.querySelector('b').textContent = (v.name || '이름 없음') + (v.demo ? ' (연습)' : '');
-    el.querySelector('span').textContent = [new Date(v.at || 0).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }), v.msg].filter(Boolean).join(' · ');
-    const b = el.querySelector('button');
-    b.onclick = () => {
-      if (!b.classList.contains('sure')) { b.classList.add('sure'); b.textContent = '한 번 더 누르면 삭제'; setTimeout(() => { b.classList.remove('sure'); b.textContent = '지우기'; }, 2500); return; }
+
+  /* ---------- 얼굴 카드 ---------- */
+  function card(id, v) {
+    const el = document.createElement('article'); el.className = 'card'; el.dataset.id = id;
+    el.innerHTML = '<div class="thumb"><canvas width="320" height="320"></canvas><span class="chk" aria-hidden="true"></span></div><b></b><span class="meta"></span><div class="acts"><button type="button" class="save">이미지 저장</button><button type="button" class="del">지우기</button></div>';
+    const cvs = el.querySelector('canvas'), cx = cvs.getContext('2d');
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, 320, 320);
+    drawFace(cx, unpack(v.s), { x: 22, y: 22, size: 276 });
+    if (v.demo) { const t = document.createElement('span'); t.className = 'tag'; t.textContent = '연습'; el.querySelector('.thumb').appendChild(t); }
+    el.querySelector('b').textContent = v.name || '이름 없음';
+    const time = new Date(v.at || 0).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    el.querySelector('.meta').textContent = [time, v.msg && `“${v.msg}”`].filter(Boolean).join(' · ');
+    el.querySelector('.save').onclick = (e) => {
+      e.stopPropagation();
+      const a = document.createElement('a'); a.href = cvs.toDataURL('image/png'); a.download = `face-${(v.name || 'face').replace(/[\\/:*?"<>|]/g, '')}-${id.slice(-5)}.png`; a.click();
+    };
+    const del = el.querySelector('.del');
+    del.onclick = (e) => {
+      e.stopPropagation();
+      if (!del.classList.contains('sure')) { del.classList.add('sure'); del.textContent = '한 번 더!'; setTimeout(() => { del.classList.remove('sure'); del.textContent = '지우기'; }, 2500); return; }
       store.removeFace(id);
     };
-    cards.set(id, el);
-    const grid = $('grid'), after = [...grid.children].find((c) => +c.dataset.at < (v.at || 0));
-    grid.insertBefore(el, after || null);
-    paintCount();
-  }, (id) => { const el = cards.get(id); if (el) { el.remove(); cards.delete(id); paintCount(); } });
+    el.onclick = () => { if (!selecting) return; picked.has(id) ? picked.delete(id) : picked.add(id); paintPick(); };
+    return el;
+  }
+  store.onFaces((id, v) => {
+    if (faces.has(id) || !v) return;
+    const el = card(id, v); if (booted) el.classList.add('new');
+    faces.set(id, { v, el }); render(); stats();
+  }, (id) => {
+    const f = faces.get(id); if (!f) return;
+    f.el.remove(); faces.delete(id); picked.delete(id); paintPick(); stats();
+  });
 
-  // 연습 얼굴
+  /* ---------- 찾기 · 정렬 ---------- */
+  function render() {
+    const q = $('q').value.trim().toLowerCase(), sort = $('sort').value;
+    const list = [...faces.entries()].filter(([, f]) => !q || `${f.v.name || ''} ${f.v.msg || ''}`.toLowerCase().includes(q));
+    list.sort(([, a], [, b]) => sort === 'old' ? (a.v.at || 0) - (b.v.at || 0) : sort === 'name' ? (a.v.name || '').localeCompare(b.v.name || '', 'ko') : (b.v.at || 0) - (a.v.at || 0));
+    const grid = $('grid'), keep = new Set(list.map(([id]) => id));
+    for (const [id, f] of faces) if (!keep.has(id)) f.el.remove();
+    list.forEach(([, f], i) => { if (grid.children[i] !== f.el) grid.insertBefore(f.el, grid.children[i] || null); });
+    $('gridEmpty').hidden = faces.size > 0;
+  }
+  $('q').oninput = render; $('sort').onchange = render;
+
+  /* ---------- 여러 개 골라서 지우기 ---------- */
+  function paintPick() {
+    for (const [id, f] of faces) { const on = picked.has(id); f.el.classList.toggle('picked', on); f.el.querySelector('.chk').textContent = on ? '✓' : ''; }
+    $('delSelBtn').disabled = picked.size === 0;
+    $('delSelBtn').textContent = picked.size ? `고른 ${picked.size}개 지우기` : '고른 것 지우기';
+  }
+  $('selBtn').onclick = () => {
+    selecting = !selecting; picked.clear();
+    $('selBtn').setAttribute('aria-pressed', selecting); $('selBtn').textContent = selecting ? '고르기 끝내기' : '여러 개 고르기';
+    $('grid').classList.toggle('selecting', selecting);
+    $('allBtn').hidden = $('delSelBtn').hidden = !selecting; $('delBox').hidden = true;
+    paintPick();
+  };
+  $('allBtn').onclick = () => { for (const el of $('grid').children) picked.add(el.dataset.id); paintPick(); };
+  $('delSelBtn').onclick = () => { $('delMsg').textContent = `고른 얼굴 ${picked.size}개를 지울까요?`; $('delBox').hidden = false; };
+  $('delNo').onclick = () => { $('delBox').hidden = true; };
+  $('delYes').onclick = async () => {
+    const ids = [...picked]; $('delBox').hidden = true;
+    await Promise.all(ids.map((id) => store.removeFace(id)));
+    picked.clear(); paintPick();
+  };
+
+  /* ---------- 연습 · 정리 ---------- */
   $('testBtn').onclick = async () => {
     for (let i = 0; i < 5; i++) {
       const seed = (Date.now() + i * 991) >>> 0, R = rng(seed);
@@ -202,7 +337,7 @@ async function start() {
       await new Promise((r) => setTimeout(r, 400));
     }
   };
-  $('testDelBtn').onclick = () => { for (const [id, el] of cards) if (el.dataset.demo) store.removeFace(id); };
+  $('testDelBtn').onclick = () => { for (const [id, f] of faces) if (f.v.demo) store.removeFace(id); };
   $('clearBtn').onclick = () => { $('clearBox').hidden = false; };
   $('clearNo').onclick = () => { $('clearBox').hidden = true; };
   $('clearYes').onclick = async () => { await store.clearFaces(); $('clearBox').hidden = true; };

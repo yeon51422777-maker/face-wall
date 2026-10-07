@@ -14,6 +14,7 @@ export const PASSWORD = '1212';
 
 export const DEFAULTS = {
   showTitle: false,   // 큰 화면 왼쪽 위 제목 (레퍼런스처럼 기본은 숨김)
+  size: 's',          // 큰 화면 얼굴 크기: xs·s·m·l
   eyebrow: '참여형 드로잉 월',
   title1: '그릴수록',
   title2: '화면이 채워져요',

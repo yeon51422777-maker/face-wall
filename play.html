@@ -154,7 +154,7 @@ button{ font:inherit; color:inherit; cursor:pointer }
       <div class="row">
         <canvas class="pv sunken" id="preview" width="176" height="176"></canvas>
         <div class="fields">
-          <div><label for="nameIn"><u>이</u>름 (8자)</label><input class="sunken" id="nameIn" maxlength="8" enterkeyhint="next"></div>
+          <div><label for="nameIn"><u>사</u>랑스러운 이름 (8자)</label><input class="sunken" id="nameIn" maxlength="8" placeholder="예) 반짝반짝 민지" enterkeyhint="next"></div>
           <div><label for="msgIn"><u>한</u>마디 (안 써도 돼요)</label><input class="sunken" id="msgIn" maxlength="12" placeholder="예) 반가워요!" enterkeyhint="send"></div>
         </div>
       </div>
@@ -270,7 +270,7 @@ $('backBtn').onclick = $('xBtn').onclick = () => { $('sheet').hidden = true; };
 $('sendForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = $('nameIn').value.trim().slice(0, 8), msg = $('msgIn').value.trim().slice(0, 12);
-  if (!name) { $('sendHint').textContent = '이름을 넣어 주세요'; $('nameIn').focus(); return; }
+  if (!name) { $('sendHint').textContent = '사랑스러운 이름을 넣어 주세요'; $('nameIn').focus(); return; }
   if (!store) { $('sendHint').textContent = '아직 연결 중이에요. 잠시 후 다시 눌러 주세요'; return; }
   if (settings.open === false) { $('sendHint').textContent = '지금은 잠시 받지 않아요'; return; }
   try { localStorage.setItem('fw-name', name); } catch (err) {}
