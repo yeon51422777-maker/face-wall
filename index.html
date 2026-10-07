@@ -7,9 +7,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@600;700&family=Noto+Sans+KR:wght@500;700;900&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <style>
-/* 큰 화면 — 흰 벽에 사람들이 그린 얼굴이 하나씩 붙으며 화면이 채워짐 */
+/* 큰 화면 — 흰 벽 가득 얼굴들. 새 얼굴이 오면 모두 비켜서 쳐다보고, 가운데서 쏙 그려짐 */
 :root{
-  --paper:#FBFAF6; --ink:#141418; --sub:#6B6E78; --yellow:#FFD23F; --line:#E7E4DC;
+  --paper:#FFFFFF; --ink:#141418; --sub:#6B6E78; --yellow:#FFD23F; --line:#E7E4DC;
   --display:'Anton','Archivo',sans-serif; --latin:'Archivo','Noto Sans KR',sans-serif; --ko:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;
   color-scheme:light;
 }
@@ -19,75 +19,64 @@ html,body{ margin:0; height:100%; overflow:hidden; background:var(--paper); colo
 canvas{ position:fixed; inset:0; width:100%; height:100%; display:block }
 .ov{ position:fixed; z-index:5 }
 
-/* 제목 */
-#title{ left:3.2vmin; top:3vmin; max-width:46vmin; pointer-events:none }
-#title p{ margin:0 0 1.2vmin; font:700 1.9vmin/1 var(--ko); color:var(--sub); letter-spacing:.02em }
-#title h1{ margin:0; font:900 6.4vmin/1.12 var(--ko); letter-spacing:-.045em }
+/* 제목 (관리자에서 켤 때만) */
+#title{ left:3.2vmin; top:3vmin; max-width:46vmin; pointer-events:none; background:rgba(255,255,255,.9); padding:2vmin 2.4vmin; border-radius:2vmin }
+#title p{ margin:0 0 1vmin; font:700 1.8vmin/1 var(--ko); color:var(--sub) }
+#title h1{ margin:0; font:900 5.6vmin/1.12 var(--ko); letter-spacing:-.045em }
 #title h1 u{ text-decoration:none; background:linear-gradient(transparent 72%, var(--yellow) 72% 94%, transparent 94%) }
-#title .sub{ margin-top:1.6vmin; font:500 1.9vmin/1.5 var(--ko); color:var(--sub); letter-spacing:0 }
-#count{ display:inline-flex; align-items:baseline; gap:.8vmin; margin-top:2vmin; padding:1vmin 1.8vmin; border-radius:99px; background:var(--ink); color:#fff; font:700 1.7vmin/1 var(--ko) }
-#count b{ font:400 2.8vmin/1 var(--display); letter-spacing:.04em; color:var(--yellow) }
+#title .sub{ margin:1.4vmin 0 0; font:500 1.8vmin/1.5 var(--ko); color:var(--sub) }
 
-/* QR 카드 */
-#qrcard{ right:3vmin; bottom:3vmin; display:flex; align-items:center; gap:2vmin; background:#fff; border:1px solid var(--line); border-radius:2.4vmin; padding:1.8vmin 2.4vmin 1.8vmin 1.8vmin; box-shadow:0 2vmin 5vmin rgba(20,20,24,.10) }
-#qrcard img{ width:16vmin; height:16vmin; image-rendering:pixelated; display:block }
-#qrcard .txt{ display:grid; gap:1vmin }
-#qrcard .brand{ display:flex; align-items:center; gap:1vmin; font:400 3.4vmin/1 var(--display); letter-spacing:.05em }
-#qrcard .brand i{ width:3.4vmin; height:3.4vmin; border-radius:.9vmin; background:var(--yellow); display:grid; place-items:center; font:400 2.2vmin/1 var(--display); font-style:normal; color:var(--ink) }
-#qrcard .how{ font:700 1.9vmin/1.45 var(--ko) }
-#qrcard .url{ font:600 1.3vmin/1.3 var(--latin); color:var(--sub); max-width:24vmin; word-break:break-all }
+/* 아래 가운데 QR 배지 (레퍼런스처럼 작게) */
+#qrcard{ left:50%; bottom:2.6vmin; transform:translateX(-50%); display:flex; align-items:center; gap:1.6vmin; background:#fff; border-radius:1.8vmin; padding:1.2vmin 2.2vmin 1.2vmin 1.2vmin; box-shadow:0 0 0 1px var(--line), 0 1.4vmin 4vmin rgba(20,20,24,.12) }
+#qrcard img{ width:11vmin; height:11vmin; image-rendering:pixelated; display:block }
+#qrcard .txt{ display:grid; gap:.6vmin }
+#qrcard .brand{ font:400 3.6vmin/1 var(--display); letter-spacing:.04em }
+#qrcard .en{ font:600 1.5vmin/1 var(--latin); color:var(--sub) }
+#qrcard .how{ font:700 1.7vmin/1.35 var(--ko) }
 #qrcard.closed .how{ color:#C2410C }
+#count{ font:700 1.5vmin/1 var(--ko); color:var(--sub) }
+#count b{ color:var(--ink) }
 
-/* 도착 알림 */
-#toast{ left:50%; top:3vmin; transform:translate(-50%, -160%); display:flex; align-items:center; gap:1.6vmin; background:rgba(255,255,255,.96); border:1px solid var(--line); border-radius:2.2vmin; padding:1.5vmin 2.6vmin 1.5vmin 1.5vmin; box-shadow:0 1.6vmin 4vmin rgba(20,20,24,.14); transition:transform .5s cubic-bezier(.2,1.2,.4,1); min-width:40vmin; max-width:70vw }
-#toast.on{ transform:translate(-50%, 0) }
-#toast i{ flex:none; width:5vmin; height:5vmin; border-radius:1.3vmin; background:var(--yellow); display:grid; place-items:center; font:400 3vmin/1 var(--display); font-style:normal }
-#toast small{ display:block; font:600 1.5vmin/1 var(--latin); color:var(--sub); margin-bottom:.7vmin }
-#toast b{ font:700 2.2vmin/1.3 var(--ko) }
-
-/* 처음 비어 있을 때 */
-#empty{ left:50%; top:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none }
+#empty{ left:50%; top:46%; transform:translate(-50%,-50%); text-align:center; pointer-events:none }
 #empty b{ display:block; font:900 4vmin/1.3 var(--ko); letter-spacing:-.03em }
 #empty span{ font:500 2vmin/1.5 var(--ko); color:var(--sub) }
 
-/* 진행자 안내 (H로 숨김) */
-#help{ left:3.2vmin; bottom:3vmin; font:600 1.4vmin/1.7 var(--ko); color:var(--sub); background:rgba(255,255,255,.85); border:1px solid var(--line); border-radius:1.4vmin; padding:1.2vmin 1.6vmin }
-#help kbd{ font:700 1.3vmin/1 var(--latin); border:1px solid var(--line); border-bottom-width:2px; border-radius:.5vmin; padding:.2vmin .6vmin; background:#fff; color:var(--ink) }
+#help{ left:2vmin; top:2vmin; font:600 1.3vmin/1.7 var(--ko); color:var(--sub); background:rgba(255,255,255,.92); border:1px solid var(--line); border-radius:1.2vmin; padding:1vmin 1.4vmin; max-width:44vmin }
+#help kbd{ font:700 1.2vmin/1 var(--latin); border:1px solid var(--line); border-bottom-width:2px; border-radius:.5vmin; padding:.2vmin .5vmin; background:#fff; color:var(--ink) }
 #net{ color:#16A34A } #net.off{ color:#DC2626 }
-body.clean #help, body.clean #title, body.clean #qrcard{ display:none }
-body.noqr #qrcard{ display:none }
-@media (prefers-reduced-motion: reduce){ #toast{ transition:none } }
+body.clean #help, body.clean #qrcard, body.clean #title{ display:none }
+body.notitle #title{ display:none }
+body.helpoff #help{ display:none }
 </style>
 </head>
-<body>
+<body class="notitle">
 <canvas id="c" aria-label="사람들이 그린 얼굴이 모이는 화면"></canvas>
 
 <header class="ov" id="title">
   <p id="tEyebrow"></p>
   <h1><span id="t1"></span><br><u id="t2"></u></h1>
   <p class="sub" id="tSub"></p>
-  <span id="count">지금까지 <b id="countN">0</b>명</span>
 </header>
 
 <aside class="ov" id="qrcard">
   <img id="qr" alt="참여 QR 코드">
   <div class="txt">
-    <span class="brand"><i>F</i>FACE WALL</span>
-    <span class="how" id="qrHow">폰 카메라로 찍고<br>내 얼굴을 그려 주세요</span>
-    <span class="url" id="qrUrl"></span>
+    <span class="brand">FACE WALL</span>
+    <span class="en">draw your face</span>
+    <span class="how" id="qrHow">QR 찍고 내 얼굴 그리기</span>
+    <span id="count">지금까지 <b id="countN">0</b>명</span>
   </div>
 </aside>
 
-<div class="ov" id="toast" role="status" aria-live="polite"><i>F</i><div><small>FACE WALL · 지금</small><b id="toastText"></b></div></div>
-<div class="ov" id="empty"><b>첫 번째 얼굴을 기다리고 있어요</b><span>QR을 찍고 그려 보세요</span></div>
+<div class="ov" id="empty"><b>첫 번째 얼굴을 기다리고 있어요</b><span>아래 QR을 찍고 그려 보세요</span></div>
 
 <div class="ov" id="help">
-  <span id="net">● 연결 중…</span> · <kbd>F</kbd> 전체화면 · <kbd>Q</kbd> QR 숨기기 · <kbd>H</kbd> 글자 모두 숨기기 · <kbd>D</kbd> 연습 얼굴 · <kbd>M</kbd> 소리 <span id="snd">켜짐</span><br>
-  이 안내는 <kbd>H</kbd>를 누르면 사라져요
+  <span id="net">● 연결 중…</span><br>
+  <kbd>F</kbd> 전체화면 · <kbd>D</kbd> 연습 얼굴 · <kbd>Q</kbd> QR · <kbd>T</kbd> 제목 · <kbd>M</kbd> 소리 <span id="snd">켜짐</span> · <kbd>H</kbd> 이 안내 숨기기
 </div>
 
 <script type="module">
-import { connect, unpack, drawFace, bbox, hash, rng, pageUrl, demoFace, DEMO_NAMES, DEMO_MSGS, LOCAL } from './core.js';
+import { connect, unpack, drawFace, bbox, hash, rng, pageUrl, demoFace, DEMO_NAMES, DEMO_MSGS, LOCAL, isLine } from './core.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('c'), ctx = cv.getContext('2d');
@@ -95,148 +84,176 @@ let W = 0, H = 0, DPR = 1;
 function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; layout(); }
 addEventListener('resize', resize);
 
-/* ---------- 얼굴 하나 = 미리 그려 둔 떨림 그림 3장 ---------- */
-const FRAMES = 3, RES = 360;
-const faces = [];          // 화면에 있는 얼굴 (도착 순)
-const byId = new Map();
-let settings = { max: 80 };
+/* =========================================================
+   얼굴 하나 = 손떨림 그림 3장(번갈아 보여 줌) + 위치·크기
+   ========================================================= */
+const FRAMES = 3, RES = 300;
+const faces = [], byId = new Map();
+let settings = { max: 80 }, total = 0;
 
 function makeFace(id, v, arriving) {
-  const strokes = unpack(v.s);
-  const box = bbox(strokes), h = hash(id), R = rng(h);
+  const strokes = unpack(v.s), box = bbox(strokes), h = hash(id), R = rng(h);
   const frames = [];
   for (let i = 0; i < FRAMES; i++) {
     const c = document.createElement('canvas'); c.width = c.height = RES;
-    drawFace(c.getContext('2d'), strokes, { size: RES * .92, x: RES * .04, y: RES * .04, box, wobble: 7, seed: h + i * 7919 });
+    drawFace(c.getContext('2d'), strokes, { size: RES * .92, x: RES * .04, y: RES * .04, box, wobble: 6, seed: h + i * 7919 });
     frames.push(c);
   }
+  // 등장할 때: 색칠 먼저, 선(검정·남색)은 나중에
+  const order = [...strokes.filter((k) => !isLine(k.c)), ...strokes.filter((k) => isLine(k.c))];
   return {
-    id, name: (v.name || '').slice(0, 8), msg: (v.msg || '').slice(0, 12), at: v.at || 0, strokes, box, frames,
-    phase: R() * 10, speed: .8 + R() * .6, rot: (R() - .5) * .3, scale: .8 + R() * .2, jx: (R() - .5) * .22, jy: (R() - .5) * .22,
-    x: W / 2, y: H / 2, s: 10, tx: W / 2, ty: H / 2, ts: 10, arriving, born: performance.now(),
+    id, name: (v.name || '').slice(0, 8), msg: (v.msg || '').slice(0, 12), strokes, order, box, frames,
+    phase: R() * 10, speed: .7 + R() * .6, rot: (R() - .5) * .35, scale: .92 + R() * .18, jx: (R() - .5) * .3, jy: (R() - .5) * .3,
+    x: W / 2, y: H / 2, s: 0, tx: W / 2, ty: H / 2, ts: 0, arriving, lean: 0,
   };
 }
 
-/* ---------- 자리 배치: 화면을 칸으로 나누고, 얼굴마다 지금 위치에서 가장 가까운 빈 칸 ---------- */
+/* =========================================================
+   자리 배치 — 벌집처럼 엇갈린 칸, 살짝 겹치게 빽빽하게
+   얼굴은 지금 있는 곳에서 가장 가까운 빈 칸으로 (조금씩만 움직임)
+   ========================================================= */
 function reserved() {
   const out = [];
-  for (const id of ['title', 'qrcard', 'help']) {
+  for (const id of ['title', 'qrcard']) {
     const el = $(id); if (!el) continue;
-    const r = el.getBoundingClientRect(), m = Math.min(W, H) * .03;
-    if (!r.width || !r.height) continue;
-    out.push({ l: r.left - m, t: r.top - m, r: r.right + m, b: r.bottom + m });
+    const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue;
+    const m = Math.min(W, H) * .012; out.push({ l: r.left - m, t: r.top - m, r: r.right + m, b: r.bottom + m });
   }
   return out;
 }
 function layout() {
-  const list = faces.filter((f) => !f.gone);
+  const list = faces;
   const n = list.length; $('empty').hidden = n > 0;
+  $('countN').textContent = total;
   if (!n || !W) return;
-  const pad = Math.min(W, H) * .025, aw = W - pad * 2, ah = H - pad * 2, res = reserved();
-  let s = Math.min(Math.sqrt(aw * ah * .78 / n), Math.min(W, H) * .34), cells = [], cw = 0, ch = 0;
-  for (let it = 0; it < 80; it++) {
-    const cols = Math.max(1, Math.floor(aw / s)), rows = Math.max(1, Math.floor(ah / s));
-    cw = aw / cols; ch = ah / rows; cells = [];
+  const res = reserved(), short = Math.min(W, H);
+  let s = short * .26, cells = [];   // 큰 칸부터 조금씩 줄여서, 얼굴 수에 딱 맞는 가장 큰 칸을 찾음 → 빈틈 없이 가득
+  for (let it = 0; it < 160; it++) {
+    const rh = s * .88, rows = Math.max(1, Math.round(H / rh)), cols = Math.max(1, Math.round(W / s));
+    const cw = W / cols, ch = H / rows; cells = [];
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      const x = pad + (c + .5) * cw, y = pad + (r + .5) * ch;
-      const hx = cw * .42, hy = ch * .42;
+      const x = (c + (r % 2 ? .75 : .25)) * cw, y = (r + .5) * ch;
+      const hx = cw * .3, hy = ch * .3;
       if (res.some((q) => x + hx > q.l && x - hx < q.r && y + hy > q.t && y - hy < q.b)) continue;
       cells.push({ x, y, used: false });
     }
-    if (cells.length >= n) break;
-    s *= .95;
+    if (cells.length >= n) { s = Math.min(cw, ch * 1.1); break; }
+    s *= .97;
   }
-  const size = Math.min(cw, ch);
-  // 오래된 얼굴부터 지금 있는 곳에서 가까운 칸을 차지 → 새 얼굴이 와도 크게 뒤섞이지 않음
-  for (const f of list) {
+  for (const f of [...list.filter((q) => q.arriving), ...list.filter((q) => !q.arriving)]) {   // 새 얼굴이 가운데 칸 먼저
     let best = null, bd = Infinity;
-    for (const c of cells) { if (c.used) continue; const d = (c.x - f.tx) ** 2 + (c.y - f.ty) ** 2 + (f.arriving ? Math.random() * 1e6 : 0); if (d < bd) { bd = d; best = c; } }
+    for (const c of cells) { if (c.used) continue; const d = (c.x - f.tx) ** 2 + (c.y - f.ty) ** 2; if (d < bd) { bd = d; best = c; } }
     if (!best) { f.ts = 0; continue; }
     best.used = true;
-    f.tx = best.x + f.jx * cw; f.ty = best.y + f.jy * ch; f.ts = size * f.scale;
+    f.tx = best.x + f.jx * s * .5; f.ty = best.y + f.jy * s * .5; f.ts = s * 1.08 * f.scale;
   }
-  $('countN').textContent = total;
 }
 
-/* ---------- 새 얼굴 도착 연출: 가운데서 그려지고 → 자기 자리로 날아감 ---------- */
+/* =========================================================
+   새 얼굴 등장 — ① 모두 비켜서 쳐다봄 ② 색이 쏙 ③ 선이 그려짐 ④ 말풍선 ⑤ 무리 속으로
+   ========================================================= */
 const queue = []; let spot = null;
-function enqueue(f) { queue.push(f); }
 function nextSpot(now) {
   if (spot || !queue.length) return;
-  const f = queue.shift();
-  const fast = queue.length > 3;
-  spot = { f, t0: now, draw: fast ? 900 : 2200, hold: fast ? 300 : 1100, fly: fast ? 600 : 900 };
-  toast(`${f.name || '누군가'}님의 얼굴이 큰 화면에 올라왔어요`);
-  pop();
+  const f = queue.shift(), fast = queue.length >= 3;
+  const k = fast ? .45 : 1;
+  spot = { f, t0: now, T: { away: 650 * k, blob: 650 * k, line: 1700 * k, hold: 1500 * k, back: 1000 * k } };
+  pop(520);
 }
-const ease = (t) => 1 - Math.pow(1 - t, 3);
+const ease = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
+const back = (t) => { t = Math.min(1, Math.max(0, t)); const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+function spotState(now) {   // 지금 단계와 '비켜서기' 정도
+  if (!spot) return null;
+  const { t0, T } = spot, e = now - t0;
+  const a = T.away, b = a + T.blob, l = b + T.line, h = l + T.hold, z = h + T.back;
+  let push;
+  if (e < a) push = ease(e / a); else if (e < h) push = 1; else push = 1 - ease((e - h) / T.back);
+  return { e, a, b, l, h, z, push };
+}
 
 /* ---------- 그리기 ---------- */
-function bubble(x, y, text, fs) {
+function bubble(x, y, text, fs, side = 1) {   // side 1: 오른쪽으로 뻗음, -1: 왼쪽
   ctx.font = `700 ${fs}px "Noto Sans KR", sans-serif`;
-  const w = ctx.measureText(text).width + fs * 1.1, h = fs * 1.75, r = h / 2;
-  x = Math.min(x, W - w - 6); y = Math.max(y, h + 6);
+  const w = ctx.measureText(text).width + fs * 1.2, h = fs * 1.8;
+  let bx = side > 0 ? x : x - w; bx = Math.max(6, Math.min(bx, W - w - 6)); const by = Math.max(h + 6, y);
   ctx.fillStyle = '#141418';
-  ctx.beginPath(); ctx.roundRect(x, y - h, w, h, r); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(x + fs * .5, y - 1); ctx.lineTo(x + fs * .1, y + fs * .55); ctx.lineTo(x + fs * 1.3, y - 1); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(text, x + fs * .55, y - h / 2 + 1);
+  ctx.beginPath(); ctx.roundRect(bx, by - h, w, h, h / 2); ctx.fill();
+  const tx = side > 0 ? bx + fs * .6 : bx + w - fs * .6;
+  ctx.beginPath(); ctx.moveTo(tx - fs * .45, by - 2); ctx.lineTo(tx - side * fs * .5, by + fs * .6); ctx.lineTo(tx + fs * .45, by - 2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillText(text, bx + fs * .6, by - h / 2 + 1);
 }
 function frame(now) {
   requestAnimationFrame(frame);
   nextSpot(now);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.fillStyle = '#FBFAF6'; ctx.fillRect(0, 0, W, H);
-  const t = now / 1000, k = 0.075;
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+  const t = now / 1000, k = .07, st = spotState(now);
+  const S = Math.min(W, H) * .4, cx = W / 2, cy = H * .46, clear = S * .78;
   for (const f of faces) {
     f.x += (f.tx - f.x) * k; f.y += (f.ty - f.y) * k; f.s += (f.ts - f.s) * k;
-    if (f.arriving || f.s < 4) continue;
-    const bob = Math.sin(t * f.speed * 1.6 + f.phase) * f.s * .035, sway = Math.sin(t * f.speed + f.phase) * .06;
-    const img = f.frames[Math.floor(now / 180 + f.phase * 3) % FRAMES];
-    ctx.save(); ctx.translate(f.x, f.y + bob); ctx.rotate(f.rot * .5 + sway);
+    if (f.arriving || f.s < 3) continue;
+    let dx = 0, dy = 0, look = 0;
+    if (st) {
+      const vx = f.x - cx, vy = f.y - cy, d = Math.hypot(vx, vy) || 1;
+      const need = Math.max(0, clear + f.s * .45 - d);                 // 가운데 동그라미 밖으로 밀림
+      dx = vx / d * need * st.push; dy = vy / d * need * st.push;
+      const near = Math.max(0, 1 - d / (Math.max(W, H) * .7));         // 가까울수록 더 쳐다봄
+      look = st.push * (.25 + near * .75);
+      f.lean += ((vx < 0 ? 1 : -1) * .32 * look - f.lean) * .15;        // 고개를 가운데로 기울임
+    } else f.lean *= .9;
+    const bob = Math.sin(t * f.speed * 1.5 + f.phase) * f.s * .03 * (1 - look * .8);
+    const sway = Math.sin(t * f.speed + f.phase) * .05 * (1 - look);
+    const hop = look ? -Math.abs(Math.sin(t * 9 + f.phase)) * f.s * .03 * look : 0;   // 놀라서 콩콩
+    const img = f.frames[Math.floor(now / 170 + f.phase * 3) % FRAMES];
+    ctx.save(); ctx.translate(f.x + dx, f.y + dy + bob + hop); ctx.rotate(f.rot * .5 + sway + f.lean);
     ctx.drawImage(img, -f.s / 2, -f.s / 2, f.s, f.s);
     ctx.restore();
-    if (f.msg && f.s > 70) bubble(f.x + f.s * .22, f.y + bob - f.s * .3, f.msg, Math.max(11, Math.min(22, f.s * .12)));
+    if (f.msg && f.s > 64 && !look) bubble(f.x + dx + f.s * .2, f.y + dy + bob - f.s * .32, f.msg, Math.max(11, Math.min(20, f.s * .12)));
   }
-  if (spot) drawSpot(now);
+  if (st) drawSpot(now, st, S, cx, cy);
 }
-function drawSpot(now) {
-  const { f, t0, draw, hold, fly } = spot, e = now - t0;
-  const S = Math.min(W, H) * .56, cx = W / 2, cy = H / 2 + S * .02;
-  if (e < draw + hold) {
-    const a = Math.min(1, e / 300);
-    ctx.fillStyle = `rgba(251,250,246,${.82 * a})`; ctx.fillRect(0, 0, W, H);
-    ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(255,210,63,.35)';
-    ctx.beginPath(); ctx.arc(cx, cy, S * .62, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-    const p = Math.min(1, e / draw);
-    drawFace(ctx, f.strokes, { x: cx - S / 2, y: cy - S / 2, size: S, box: f.box, wobble: p >= 1 ? 7 : 0, seed: hash(f.id) + Math.floor(now / 180) % 3 * 7919, progress: ease(p) });
-    ctx.globalAlpha = Math.min(1, Math.max(0, (e - draw * .6) / 400));
-    ctx.fillStyle = '#141418'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.font = `900 ${Math.round(S * .085)}px "Noto Sans KR", sans-serif`;
-    ctx.fillText(`${f.name || '누군가'}님`, cx, cy + S * .62);
-    ctx.textAlign = 'left';
-    if (f.msg) bubble(cx + S * .26, cy - S * .3, f.msg, Math.round(S * .055));
-    ctx.globalAlpha = 1;
+function drawSpot(now, st, S, cx, cy) {
+  const f = spot.f, { e, a, b, l, h, z } = st;
+  if (e >= z) { f.arriving = false; f.x = f.tx; f.y = f.ty; f.s = f.ts; spot = null; return; }
+  if (e < a) return;   // 아직 비켜서는 중
+  if (e < h) {
+    // ② 색이 쏙 (튀어나오듯 커짐) → ③ 선이 그려짐
+    const nCol = f.order.filter((k) => !isLine(k.c)).reduce((n, k) => n + k.p.length, 0), nAll = f.order.reduce((n, k) => n + k.p.length, 0) || 1;
+    const pb = Math.min(1, (e - a) / (b - a)), pl = Math.min(1, Math.max(0, (e - b) / (l - b)));
+    const progress = (nCol * ease(pb) + (nAll - nCol) * ease(pl)) / nAll;
+    const sc = nCol ? back(pb) : 1, size = S * sc;
+    const breath = e > l ? 1 + Math.sin((e - l) / 140) * .015 : 1;
+    if (e > l) {   // 다 그려지면 손떨림 그림으로
+      ctx.save(); ctx.translate(cx, cy); ctx.scale(breath, breath);
+      ctx.drawImage(f.frames[Math.floor(now / 170) % FRAMES], -S / 2, -S / 2, S, S); ctx.restore();
+    } else drawFace(ctx, f.order, { x: cx - size / 2, y: cy - size / 2, size, box: f.box, progress });
+    // ④ 이름 말풍선 (레퍼런스처럼 검정 말풍선이 옆에서)
+    const ta = Math.min(1, Math.max(0, (e - b - (l - b) * .5) / 300));
+    if (ta > 0) {
+      ctx.globalAlpha = ta;
+      bubble(cx - S * .42, cy - S * .18, f.msg || `안녕! 나는 ${f.name || '누군가'}`, Math.round(S * .075), -1);
+      ctx.font = `900 ${Math.round(S * .09)}px "Noto Sans KR", sans-serif`; ctx.fillStyle = '#141418'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.fillText(`${f.name || '누군가'}`, cx, cy + S * .62);
+      ctx.globalAlpha = 1;
+    }
     return;
   }
-  const p = ease(Math.min(1, (e - draw - hold) / fly));
-  ctx.fillStyle = `rgba(251,250,246,${.82 * (1 - p)})`; ctx.fillRect(0, 0, W, H);
+  // ⑤ 작아지며 무리 속 자기 자리로
+  const p = ease((e - h) / (z - h));
   const x = cx + (f.tx - cx) * p, y = cy + (f.ty - cy) * p, s = S + (f.ts - S) * p;
   ctx.save(); ctx.translate(x, y); ctx.rotate(f.rot * .5 * p);
-  ctx.drawImage(f.frames[Math.floor(now / 180) % FRAMES], -s / 2, -s / 2, s, s);
+  ctx.drawImage(f.frames[Math.floor(now / 170) % FRAMES], -s / 2, -s / 2, s, s);
   ctx.restore();
-  if (p >= 1) { f.arriving = false; f.x = f.tx; f.y = f.ty; f.s = f.ts; spot = null; }
 }
 
-/* ---------- 알림 · 소리 ---------- */
-let toastTimer = 0;
-function toast(text) { $('toastText').textContent = text; $('toast').classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('on'), 4200); }
+/* ---------- 소리 ---------- */
 let sound = true, ac = null;
-function pop() {
+function pop(f0) {
   if (!sound) return;
   try {
     ac = ac || new AudioContext(); if (ac.state === 'suspended') return;
     const o = ac.createOscillator(), g = ac.createGain(), n = ac.currentTime;
-    o.type = 'sine'; o.frequency.setValueAtTime(520, n); o.frequency.exponentialRampToValueAtTime(1180, n + .14);
+    o.type = 'sine'; o.frequency.setValueAtTime(f0, n); o.frequency.exponentialRampToValueAtTime(f0 * 2.3, n + .14);
     g.gain.setValueAtTime(.0001, n); g.gain.exponentialRampToValueAtTime(.25, n + .02); g.gain.exponentialRampToValueAtTime(.0001, n + .35);
     o.connect(g).connect(ac.destination); o.start(n); o.stop(n + .4);
   } catch (e) {}
@@ -244,14 +261,14 @@ function pop() {
 addEventListener('pointerdown', () => { try { ac = ac || new AudioContext(); ac.resume(); } catch (e) {} });
 
 /* ---------- 얼굴 추가 · 삭제 ---------- */
-let total = 0;
 function addFace(id, v, arriving) {
   if (byId.has(id) || !v || !v.s) return;
   const f = makeFace(id, v, arriving);
+  if (arriving) { f.x = f.tx = W / 2; f.y = f.ty = H * .46; }          // 가운데 칸을 차지하도록
+  else { f.x = f.tx = W * Math.random(); f.y = f.ty = H * Math.random(); f.s = 0; }
   byId.set(id, f); faces.push(f); total++;
-  if (!arriving) { f.x = f.tx = W * Math.random(); f.y = f.ty = H * Math.random(); }
   trim(); layout();
-  if (arriving) enqueue(f);
+  if (arriving) queue.push(f);
 }
 function removeFace(id) {
   const f = byId.get(id); if (!f) return;
@@ -260,23 +277,23 @@ function removeFace(id) {
   if (spot && spot.f === f) spot = null;
   layout();
 }
-function trim() {   // 너무 많으면 오래된 얼굴부터 화면에서만 빼기
+function trim() {
   const max = Math.max(5, settings.max | 0 || 80);
-  while (faces.length > max) { const f = faces.shift(); byId.delete(f.id); }
+  while (faces.length > max) { const i = faces.findIndex((f) => !f.arriving); if (i < 0) break; const [f] = faces.splice(i, 1); byId.delete(f.id); }
 }
 
 /* ---------- 문구 · QR ---------- */
 function applySettings(s) {
   settings = s;
   $('tEyebrow').textContent = s.eyebrow; $('t1').textContent = s.title1; $('t2').textContent = s.title2; $('tSub').textContent = s.sub;
+  document.body.classList.toggle('notitle', !s.showTitle);
   $('qrcard').classList.toggle('closed', s.open === false);
-  $('qrHow').innerHTML = s.open === false ? '지금은 잠시<br>받지 않아요' : '폰 카메라로 찍고<br>내 얼굴을 그려 주세요';
+  $('qrHow').textContent = s.open === false ? '지금은 잠시 받지 않아요' : 'QR 찍고 내 얼굴 그리기';
   trim(); requestAnimationFrame(layout);
 }
 function renderQr() {
   const url = pageUrl('play.html');
   try { const q = qrcode(0, 'M'); q.addData(url); q.make(); $('qr').src = q.createDataURL(8, 0); } catch (e) {}
-  $('qrUrl').textContent = url.replace(/^https?:\/\//, '');
 }
 
 /* ---------- 키보드 ---------- */
@@ -288,8 +305,9 @@ function demo() {
 addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
   if (k === 'f') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.().catch(() => {}); }
-  else if (k === 'h') { document.body.classList.toggle('clean'); requestAnimationFrame(layout); }
-  else if (k === 'q') { document.body.classList.toggle('noqr'); requestAnimationFrame(layout); }
+  else if (k === 'h') document.body.classList.toggle('helpoff');
+  else if (k === 'q') { $('qrcard').hidden = !$('qrcard').hidden; requestAnimationFrame(layout); }
+  else if (k === 't') { document.body.classList.toggle('notitle'); requestAnimationFrame(layout); }
   else if (k === 'd') demo();
   else if (k === 'm') { sound = !sound; $('snd').textContent = sound ? '켜짐' : '꺼짐'; }
 });
@@ -297,7 +315,7 @@ addEventListener('keydown', (e) => {
 /* ---------- 시작 ---------- */
 resize(); renderQr(); requestAnimationFrame(frame);
 const qp = new URLSearchParams(location.search);
-if (qp.get('demo')) { const n = Math.min(150, +qp.get('demo') || 30); for (let i = 0; i < n; i++) { const sd = 1000 + i * 31; addFace('demoI' + i, { s: demoFace(sd), name: DEMO_NAMES[i % 16], msg: DEMO_MSGS[i % 10], at: i }, false); } }
+if (qp.get('demo')) { const n = Math.min(150, +qp.get('demo') || 30); for (let i = 0; i < n; i++) addFace('demoI' + i, { s: demoFace(1000 + i * 31), name: DEMO_NAMES[i % 16], msg: i % 7 === 0 ? DEMO_MSGS[i % 10] : '', at: i }, false); }
 try {
   const store = await connect();
   store.onConnected((ok) => { $('net').textContent = ok ? (LOCAL ? '● 연습 모드(이 브라우저 안에서만)' : '● 폰 연결 준비됨') : '● 연결 안 됨'; $('net').classList.toggle('off', !ok); });

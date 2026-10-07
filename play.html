@@ -3,227 +3,292 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#FBFAF6">
-<title>FACE WALL · 내 얼굴 그리기</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@600;700&family=Noto+Sans+KR:wght@500;700;900&display=swap">
+<meta name="theme-color" content="#000080">
+<title>제목 없음 - 그림판</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css">
 <style>
-/* 참가자 폰 — 얼굴을 그리고, 이름을 넣어 큰 화면으로 보냄 */
+/* 참가자 폰 — 옛날 윈도우 그림판처럼 생긴 얼굴 그리기 화면 */
 :root{
-  --paper:#FBFAF6; --ink:#141418; --sub:#6B6E78; --yellow:#FFD23F; --line:#E5E2DA;
-  --display:'Anton','Archivo',sans-serif; --latin:'Archivo','Noto Sans KR',sans-serif; --ko:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;
+  --face:#C0C0C0; --hi:#FFFFFF; --lo:#808080; --dk:#0A0A0A; --lt:#DFDFDF; --navy:#000080; --sel:#000080;
+  --font:'Galmuri11','Galmuri9','DungGeunMo','Gulim','굴림','Apple SD Gothic Neo',sans-serif;
   color-scheme:light;
 }
 *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent }
 [hidden]{ display:none !important }
-html,body{ margin:0; height:100%; background:var(--paper); color:var(--ink); font-family:var(--ko); overscroll-behavior:none }
+html,body{ margin:0; height:100%; background:#008080; font:12px/1.3 var(--font); color:#000; overscroll-behavior:none; -webkit-font-smoothing:none }
 body{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
-.scr{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center;
-  padding:max(14px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)) }
-button{ font-family:inherit; cursor:pointer }
-button:focus-visible, input:focus-visible{ outline:3px solid var(--ink); outline-offset:2px }
+button{ font:inherit; color:inherit; cursor:pointer }
 
-/* 그리기 화면 */
-.top{ width:100%; max-width:520px; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px }
-.brand{ display:flex; align-items:center; gap:7px; font:400 20px/1 var(--display); letter-spacing:.05em }
-.brand i{ width:22px; height:22px; border-radius:6px; background:var(--yellow); display:grid; place-items:center; font:400 14px/1 var(--display); font-style:normal }
-.top h1{ margin:0; font:900 17px/1.2 var(--ko); letter-spacing:-.03em; text-align:right }
-.board{ position:relative; width:min(100%, 520px, calc(100dvh - 300px)); aspect-ratio:1; flex:none; background:#fff; border-radius:22px; box-shadow:0 0 0 1px var(--line), 0 10px 26px rgba(20,20,24,.08); overflow:hidden; touch-action:none }
-.board canvas{ position:absolute; inset:0; width:100%; height:100%; touch-action:none }
-.guide{ position:absolute; inset:9%; border:2px dashed #E3E0D7; border-radius:50%; pointer-events:none; display:grid; place-items:center; text-align:center; font:700 15px/1.5 var(--ko); color:#B9B5AA; transition:opacity .3s }
-.guide.off{ opacity:0 }
-.tools{ width:100%; max-width:520px; display:grid; gap:10px; margin-top:12px }
-.colors{ display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); gap:6px }
-.colors button{ aspect-ratio:1; border-radius:50%; border:0; background:var(--c); box-shadow:inset 0 -3px 0 rgba(0,0,0,.15); transition:transform .12s }
-.colors button[aria-pressed="true"]{ transform:scale(1.08); box-shadow:0 0 0 3px var(--paper), 0 0 0 5px var(--ink) }
-.row{ display:flex; gap:8px; align-items:stretch }
-.sizes{ display:flex; gap:6px; flex:1 }
-.sizes button{ flex:1; height:48px; border-radius:14px; border:1.5px solid var(--line); background:#fff; display:grid; place-items:center }
-.sizes button i{ display:block; border-radius:50%; background:var(--cur, var(--ink)) }
-.sizes button[aria-pressed="true"]{ border-color:var(--ink); background:#F3F1EA }
-.sizes small{ display:none }
-.act{ height:48px; padding:0 14px; border-radius:14px; border:1.5px solid var(--line); background:#fff; font:700 14px/1 var(--ko); color:var(--ink) }
-.act:disabled{ opacity:.35 }
-.send{ width:100%; height:56px; border:0; border-radius:16px; background:var(--ink); color:#fff; font:900 18px/1 var(--ko); box-shadow:0 4px 0 #000 }
-.send:active{ transform:translateY(3px); box-shadow:0 1px 0 #000 }
-.send:disabled{ opacity:.3 }
-.hint{ margin:0; text-align:center; font:500 13px/1.5 var(--ko); color:var(--sub) }
-.hint.warn{ color:#C2410C; font-weight:700 }
+/* 윈98 테두리 */
+.raised{ background:var(--face); box-shadow:inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--lt) }
+.sunken{ box-shadow:inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--lt), inset 2px 2px var(--dk) }
+.btn{ border:0; background:var(--face); box-shadow:inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--lt); padding:6px 12px; min-height:30px }
+.btn:active, .btn[aria-pressed="true"]{ box-shadow:inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--lt), inset 2px 2px var(--lo) }
+.btn[aria-pressed="true"]{ background:repeating-conic-gradient(var(--face) 0 25%, #fff 0 50%) 0 0 / 2px 2px }
+.btn:disabled{ color:var(--lo); text-shadow:1px 1px var(--hi); cursor:default }
+.btn:focus-visible{ outline:1px dotted #000; outline-offset:-5px }
 
-/* 이름 넣기 (아래에서 올라오는 판) */
-.sheet{ position:fixed; inset:0; z-index:10; display:flex; align-items:flex-end; justify-content:center; background:rgba(20,20,24,.45) }
-.sheet form{ width:min(520px, 100%); background:var(--paper); border-radius:24px 24px 0 0; padding:22px 20px max(20px, env(safe-area-inset-bottom)); display:grid; gap:12px; animation:up .35s cubic-bezier(.2,1.1,.4,1) }
-@keyframes up{ from{ transform:translateY(100%) } }
-.sheet .preview{ justify-self:center; width:120px; height:120px; border-radius:20px; background:#fff; box-shadow:0 0 0 1px var(--line) }
-.sheet h2{ margin:0; text-align:center; font:900 21px/1.3 var(--ko); letter-spacing:-.03em }
-.sheet label{ font:700 13px/1 var(--ko); color:var(--sub); padding-left:4px }
-.sheet label small{ font-weight:500 }
-.sheet input{ font:700 19px/1 var(--ko); color:var(--ink); background:#fff; border:1.5px solid var(--line); border-radius:14px; padding:14px 15px; width:100%; -webkit-user-select:text; user-select:text }
-.sheet input:focus{ border-color:var(--ink); outline:none }
-.sheet .two{ display:grid; grid-template-columns:1fr 2fr; gap:8px }
-.ghost{ height:52px; border-radius:16px; border:1.5px solid var(--line); background:transparent; font:700 16px/1 var(--ko); color:var(--ink) }
+/* 창 */
+.win{ position:fixed; inset:0; display:flex; flex-direction:column; padding:3px;
+  padding-top:max(3px, env(safe-area-inset-top)); padding-bottom:max(3px, env(safe-area-inset-bottom)) }
+.titlebar{ flex:none; display:flex; align-items:center; gap:5px; height:26px; padding:0 3px 0 5px; background:linear-gradient(90deg, var(--navy), #1084D0); color:#fff; font-weight:700 }
+.titlebar svg{ flex:none; width:16px; height:16px }
+.titlebar .t{ flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; letter-spacing:.02em }
+.tb{ width:20px; height:18px; padding:0; min-height:0; display:grid; place-items:center; font:700 11px/1 var(--font); color:#000 }
+.menubar{ flex:none; display:flex; gap:2px; padding:3px 2px 2px; overflow:hidden; white-space:nowrap }
+.menubar span{ padding:2px 7px }
+.menubar span u{ text-decoration:underline }
 
-/* 다 보냄 */
-#sDone{ justify-content:center; gap:14px; text-align:center }
-#sDone .eyebrow{ margin:0; font:700 13px/1 var(--latin); letter-spacing:.3em; color:var(--sub) }
-#sDone h2{ margin:0; font:900 clamp(28px, 8vw, 38px)/1.2 var(--ko); letter-spacing:-.04em }
-#sDone h2 u{ text-decoration:none; background:linear-gradient(transparent 70%, var(--yellow) 70% 92%, transparent 92%) }
-#doneCv{ width:min(62vw, 260px); height:min(62vw, 260px); animation:boing .7s cubic-bezier(.2,1.5,.4,1) both }
-@keyframes boing{ from{ transform:scale(.3) rotate(-12deg); opacity:0 } }
-#sDone .send{ max-width:340px }
-@media (prefers-reduced-motion: reduce){ .sheet form, #doneCv{ animation:none } }
+.main{ flex:1; min-height:0; display:flex; gap:3px }
+/* 도구 상자 */
+.toolbox{ flex:none; width:62px; padding:4px; display:flex; flex-direction:column; gap:6px }
+.tools{ display:grid; grid-template-columns:repeat(2, 25px); gap:1px; justify-content:center }
+.tools .btn{ width:25px; height:25px; min-height:0; padding:0; display:grid; place-items:center }
+.tools svg{ width:16px; height:16px; image-rendering:pixelated }
+.opts{ margin:0 auto; width:50px; padding:4px 3px; display:grid; gap:3px; background:var(--face) }
+.opts button{ border:0; height:20px; background:transparent; display:grid; place-items:center; padding:0 }
+.opts button i{ display:block; background:#000; border-radius:50% }
+.opts button[aria-pressed="true"]{ background:var(--sel) }
+.opts button[aria-pressed="true"] i{ background:#fff }
+.tlabel{ text-align:center; font-size:11px; color:#000; line-height:1.25; word-break:keep-all }
+
+/* 그림 영역 (회색 바탕 + 흰 종이) */
+.area{ flex:1; min-width:0; position:relative; background:var(--lo); overflow:hidden; padding:6px }
+.paper{ position:relative; background:#fff; touch-action:none; box-shadow:1px 1px 0 #000 }
+.paper canvas{ position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair }
+.paper .h{ position:absolute; width:5px; height:5px; background:var(--navy) }
+.guide{ position:absolute; inset:10%; border:2px dotted #C8C8C8; border-radius:50%; pointer-events:none; display:grid; place-items:center; text-align:center; color:#A0A0A0; font-size:13px; line-height:1.6 }
+.guide.off{ display:none }
+
+/* 색 상자 */
+.palette{ flex:none; display:flex; gap:6px; align-items:center; padding:5px 4px 4px }
+.cur{ position:relative; flex:none; width:36px; height:36px; background:var(--face) }
+.cur i{ position:absolute; width:16px; height:16px; box-shadow:inset 1px 1px var(--lo), inset -1px -1px var(--hi), 0 0 0 1px var(--face) }
+.cur .fg{ left:6px; top:6px; z-index:2; outline:1px solid #000; outline-offset:-2px }
+.cur .bg{ right:5px; bottom:5px; background:#fff }
+.swatches{ flex:1; display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); gap:2px }
+.swatches button{ border:0; padding:0; aspect-ratio:1.25; max-height:30px; background:var(--c); box-shadow:inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--lt), inset 2px 2px var(--dk) }
+.swatches button[aria-pressed="true"]{ outline:2px solid #000; outline-offset:0; box-shadow:inset 0 0 0 2px #fff }
+
+.sendbar{ flex:none; display:flex; gap:4px; padding:2px 0 4px }
+.sendbar .btn{ flex:1; min-height:44px; font-size:15px; font-weight:700 }
+.sendbar .btn.go{ flex:2 }
+.status{ flex:none; display:flex; gap:3px }
+.status span{ padding:3px 6px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis }
+.status span:first-child{ flex:1 }
+.status span:last-child{ width:78px; text-align:right }
+.status.warn span:first-child{ color:#A00000 }
+
+/* 대화상자 */
+.modal{ position:fixed; inset:0; z-index:10; display:grid; place-items:center; padding:12px; background:rgba(0,0,0,.25) }
+.dlg{ width:min(340px, 100%); padding:3px }
+.dlg .body{ padding:12px 10px 10px; display:grid; gap:10px }
+.dlg .row{ display:flex; gap:10px; align-items:flex-start }
+.dlg canvas.pv{ flex:none; width:88px; height:88px; background:#fff }
+.dlg label{ display:block; margin-bottom:3px }
+.dlg label u{ text-decoration:underline }
+.dlg input{ width:100%; font:16px/1.2 var(--font); padding:5px 6px; border:0; background:#fff; -webkit-user-select:text; user-select:text; border-radius:0 }
+.dlg input:focus{ outline:1px dotted #000; outline-offset:-4px }
+.dlg .fields{ flex:1; display:grid; gap:8px; min-width:0 }
+.dlg .btns{ display:flex; justify-content:flex-end; gap:6px }
+.dlg .btns .btn{ min-width:84px; min-height:32px }
+.dlg .btns .btn.def{ outline:1px solid #000; outline-offset:0 }
+.dlg .msg{ margin:0; color:#A00000; min-height:1.3em }
+.icon{ flex:none; width:32px; height:32px }
+.done .big{ margin:0; font-size:16px; font-weight:700; line-height:1.5 }
+.done canvas{ display:block; width:180px; height:180px; margin:0 auto; background:#fff; animation:boing .6s cubic-bezier(.2,1.5,.4,1) both }
+@keyframes boing{ from{ transform:scale(.3); opacity:0 } }
+@media (prefers-reduced-motion: reduce){ .done canvas{ animation:none } }
 </style>
 </head>
 <body>
 
-<section class="scr" id="sDraw">
-  <div class="top">
-    <span class="brand"><i>F</i>FACE WALL</span>
-    <h1>내 얼굴을 그려 주세요</h1>
+<div class="win raised" id="win">
+  <div class="titlebar">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="12" fill="#fff" stroke="#000"/><circle cx="5" cy="6" r="1.6" fill="#F2474D"/><circle cx="9" cy="5" r="1.6" fill="#3D6CF2"/><circle cx="11" cy="9" r="1.6" fill="#3CC46E"/><path d="M3 12l4-4 2 2" stroke="#000" fill="none"/></svg>
+    <span class="t">제목 없음 - 그림판</span>
+    <button class="btn tb" type="button" tabindex="-1" aria-hidden="true">_</button>
+    <button class="btn tb" type="button" tabindex="-1" aria-hidden="true">□</button>
+    <button class="btn tb" type="button" tabindex="-1" aria-hidden="true">×</button>
   </div>
-  <div class="board" id="board">
-    <canvas id="pad" aria-label="얼굴 그리는 칸"></canvas>
-    <div class="guide" id="guide">이 동그라미 안에<br>얼굴을 크게 그려요</div>
-  </div>
-  <div class="tools">
-    <div class="colors" id="colors" role="group" aria-label="색"></div>
-    <div class="row">
-      <div class="sizes" id="sizes" role="group" aria-label="굵기"></div>
-      <button class="act" id="undo" type="button" disabled>되돌리기</button>
-      <button class="act" id="clear" type="button" disabled>지우기</button>
-    </div>
-    <button class="send" id="doneBtn" type="button" disabled>다 그렸어요</button>
-    <p class="hint" id="hint">굵은 붓으로 얼굴을 칠하고, 가는 펜으로 눈·코·입을 그려 보세요</p>
-  </div>
-</section>
+  <div class="menubar" aria-hidden="true"><span><u>파</u>일</span><span><u>편</u>집</span><span><u>보</u>기</span><span><u>이</u>미지</span><span><u>색</u></span><span><u>도</u>움말</span></div>
 
-<div class="sheet" id="sheet" hidden>
-  <form id="sendForm" autocomplete="off">
-    <canvas class="preview" id="preview" width="240" height="240"></canvas>
-    <h2>큰 화면에 같이 띄울까요?</h2>
-    <div class="two">
-      <div style="display:grid;gap:6px"><label for="nameIn">이름</label><input id="nameIn" maxlength="8" placeholder="8자까지" enterkeyhint="next"></div>
-      <div style="display:grid;gap:6px"><label for="msgIn">한마디 <small>(안 써도 돼요)</small></label><input id="msgIn" maxlength="12" placeholder="예) 반가워요!" enterkeyhint="send"></div>
+  <div class="main">
+    <div class="toolbox">
+      <div class="tools" role="group" aria-label="도구">
+        <button class="btn" type="button" data-tool="pencil" aria-label="연필" title="연필"><svg viewBox="0 0 16 16"><path d="M3 13l1-3 7-7 2 2-7 7z" fill="#FFC83A" stroke="#000"/><path d="M3 13l1-3 2 2z" fill="#000"/></svg></button>
+        <button class="btn" type="button" data-tool="brush" aria-label="붓" title="붓"><svg viewBox="0 0 16 16"><path d="M10 2l4 4-5 3-2-2z" fill="#8B5A2B" stroke="#000"/><path d="M7 7l2 2c-1 3-4 5-7 5 0-3 2-6 5-7z" fill="#3D6CF2" stroke="#000"/></svg></button>
+        <button class="btn" type="button" data-tool="fill" aria-label="큰 붓(색칠)" title="큰 붓"><svg viewBox="0 0 16 16"><path d="M3 6l5-4 6 6-5 5z" fill="#fff" stroke="#000"/><path d="M3 6l6 6c-2 1-5 2-7 1 0-2 0-5 1-7z" fill="#F2474D" stroke="#000"/><circle cx="13" cy="13" r="1.5" fill="#F2474D"/></svg></button>
+        <button class="btn" type="button" data-tool="eraser" aria-label="지우개" title="지우개"><svg viewBox="0 0 16 16"><path d="M2 10l6-6 6 6-4 4H6z" fill="#FF7AC6" stroke="#000"/><path d="M2 10l4 4h4l-4-4z" fill="#fff" stroke="#000"/></svg></button>
+        <button class="btn" type="button" id="undo" aria-label="실행 취소" title="실행 취소" disabled><svg viewBox="0 0 16 16"><path d="M5 4L2 7l3 3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 7h7a4 4 0 010 8H6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+        <button class="btn" type="button" id="clear" aria-label="새로 그리기" title="새로 그리기" disabled><svg viewBox="0 0 16 16"><path d="M3 1h7l3 3v11H3z" fill="#fff" stroke="currentColor"/><path d="M10 1v3h3" fill="none" stroke="currentColor"/></svg></button>
+      </div>
+      <div class="opts sunken" id="opts" role="group" aria-label="굵기"></div>
+      <div class="tlabel" id="tlabel">연필</div>
     </div>
-    <button class="send" id="sendBtn" type="submit">큰 화면으로 보내기</button>
-    <button class="ghost" id="backBtn" type="button">더 그릴래요</button>
-    <p class="hint" id="sendHint"></p>
+
+    <div class="area sunken" id="area">
+      <div class="paper" id="paper">
+        <canvas id="pad" aria-label="얼굴 그리는 종이"></canvas>
+        <div class="guide" id="guide">이 동그라미 안에<br>얼굴을 크게<br>그려 주세요</div>
+        <i class="h" style="right:-6px;top:50%"></i><i class="h" style="left:50%;bottom:-6px"></i><i class="h" style="right:-6px;bottom:-6px"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="palette">
+    <div class="cur sunken" aria-hidden="true"><i class="bg"></i><i class="fg" id="fg"></i></div>
+    <div class="swatches" id="swatches" role="group" aria-label="색"></div>
+  </div>
+  <div class="sendbar">
+    <button class="btn go" type="button" id="doneBtn" disabled>큰 화면으로 보내기 ▶</button>
+  </div>
+  <div class="status" id="status"><span class="sunken" id="hint">큰 붓으로 얼굴을 칠하고, 연필로 눈·코·입을 그려요</span><span class="sunken" id="xy"></span></div>
+</div>
+
+<!-- 보내기 대화상자 -->
+<div class="modal" id="sheet" hidden>
+  <form class="dlg raised" id="sendForm" autocomplete="off" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <div class="titlebar"><span class="t" id="dlgT">큰 화면으로 보내기</span><button class="btn tb" type="button" id="xBtn" aria-label="닫기">×</button></div>
+    <div class="body">
+      <div class="row">
+        <canvas class="pv sunken" id="preview" width="176" height="176"></canvas>
+        <div class="fields">
+          <div><label for="nameIn"><u>이</u>름 (8자)</label><input class="sunken" id="nameIn" maxlength="8" enterkeyhint="next"></div>
+          <div><label for="msgIn"><u>한</u>마디 (안 써도 돼요)</label><input class="sunken" id="msgIn" maxlength="12" placeholder="예) 반가워요!" enterkeyhint="send"></div>
+        </div>
+      </div>
+      <p class="msg" id="sendHint"></p>
+      <div class="btns"><button class="btn def" type="submit" id="sendBtn">확인</button><button class="btn" type="button" id="backBtn">취소</button></div>
+    </div>
   </form>
 </div>
 
-<section class="scr" id="sDone" hidden>
-  <p class="eyebrow">SENT!</p>
-  <canvas id="doneCv" width="520" height="520"></canvas>
-  <h2>큰 화면을 보세요!<br><u>내 얼굴이 올라가요</u></h2>
-  <p class="hint">참여해 주셔서 고마워요</p>
-  <button class="send" id="againBtn" type="button">한 번 더 그리기</button>
-</section>
+<!-- 다 보냄 -->
+<div class="modal" id="sDone" hidden>
+  <div class="dlg raised done" role="alertdialog" aria-modal="true" aria-labelledby="doneT">
+    <div class="titlebar"><span class="t" id="doneT">그림판</span></div>
+    <div class="body">
+      <div class="row">
+        <svg class="icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#fff" stroke="#000080" stroke-width="2"/><rect x="14" y="13" width="4" height="11" fill="#000080"/><rect x="14" y="7" width="4" height="4" fill="#000080"/></svg>
+        <p class="big">보냈어요! 큰 화면을 보세요.<br>내 얼굴이 가운데에서 등장해요.</p>
+      </div>
+      <canvas id="doneCv" class="sunken" width="360" height="360"></canvas>
+      <div class="btns"><button class="btn def" type="button" id="againBtn">한 번 더 그리기</button></div>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { connect, enc, COLORS, COLOR_KO, WIDTHS, drawFace, DEFAULTS } from './core.js';
 
 const $ = (id) => document.getElementById(id);
 const pad = $('pad'), pctx = pad.getContext('2d');
-let strokes = [], cur = null, color = 1, width = 2, store = null, settings = { ...DEFAULTS };
+let strokes = [], cur = null, color = 0, size = 0, tool = 'pencil', store = null, settings = { ...DEFAULTS };
 const MAX_POINTS = 4000;
+const WHITE = 8;
+// 도구마다 기본 굵기 (굵기 칸에서 바꿀 수 있음)
+const TOOL = { pencil: { w: 0, ko: '연필' }, brush: { w: 1, ko: '붓' }, fill: { w: 2, ko: '큰 붓' }, eraser: { w: 2, ko: '지우개' } };
+// 그림판 기본 색 배치: 윗줄 진한 색, 아랫줄 밝은 색
+const PAL = [0, 9, 14, 3, 4, 5, 6, 7, 8, 15, 1, 2, 10, 11, 12, 13];
 
-/* ---------- 도구 ---------- */
-COLORS.forEach((c, i) => {
-  const b = document.createElement('button'); b.type = 'button'; b.style.setProperty('--c', c); b.setAttribute('aria-label', COLOR_KO[i]);
-  b.onclick = () => { color = i; paintTools(); }; $('colors').appendChild(b);
+/* ---------- 도구 · 굵기 · 색 ---------- */
+document.querySelectorAll('[data-tool]').forEach((b) => b.onclick = () => { tool = b.dataset.tool; size = TOOL[tool].w; paint(); });
+WIDTHS.forEach((w, i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', ['가늘게', '보통', '굵게', '아주 굵게'][i]);
+  const d = [3, 6, 10, 15][i]; b.innerHTML = `<i style="width:${d}px;height:${d}px"></i>`;
+  b.onclick = () => { size = i; paint(); }; $('opts').appendChild(b);
 });
-['가는 펜', '중간 펜', '굵은 붓'].forEach((ko, i) => {
-  const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', ko);
-  const d = [8, 15, 28][i]; b.innerHTML = `<i style="width:${d}px;height:${d}px"></i>`;
-  b.onclick = () => { width = i; paintTools(); }; $('sizes').appendChild(b);
+PAL.forEach((ci) => {
+  const b = document.createElement('button'); b.type = 'button'; b.dataset.ci = ci; b.style.setProperty('--c', COLORS[ci]); b.setAttribute('aria-label', COLOR_KO[ci]);
+  b.onclick = () => { color = ci; if (tool === 'eraser') { tool = size >= 2 ? 'fill' : 'pencil'; } paint(); }; $('swatches').appendChild(b);
 });
-function paintTools() {
-  [...$('colors').children].forEach((b, i) => b.setAttribute('aria-pressed', i === color));
-  [...$('sizes').children].forEach((b, i) => b.setAttribute('aria-pressed', i === width));
-  $('sizes').style.setProperty('--cur', COLORS[color]);
+function paint() {
+  document.querySelectorAll('[data-tool]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.tool === tool));
+  [...$('opts').children].forEach((b, i) => b.setAttribute('aria-pressed', i === size));
+  [...$('swatches').children].forEach((b) => b.setAttribute('aria-pressed', tool !== 'eraser' && +b.dataset.ci === color));
+  $('fg').style.background = tool === 'eraser' ? '#fff' : COLORS[color];
+  $('tlabel').textContent = TOOL[tool].ko;
   const has = strokes.length > 0;
-  $('undo').disabled = $('clear').disabled = !has; $('doneBtn').disabled = !has || settings.open === false;
+  $('undo').disabled = $('clear').disabled = !has;
+  $('doneBtn').disabled = !has || settings.open === false;
   $('guide').classList.toggle('off', has);
 }
-paintTools();
+paint();
 
-/* ---------- 그리기 (1000칸 좌표로 저장) ---------- */
-let scale = 1;
+/* ---------- 종이 크기 맞추기 (회색 영역 안의 정사각형) ---------- */
 function fit() {
-  const r = pad.getBoundingClientRect(), d = Math.min(3, devicePixelRatio || 1);
-  pad.width = Math.round(r.width * d); pad.height = Math.round(r.height * d); scale = pad.width / 1000; redraw();
+  const a = $('area').getBoundingClientRect(), s = Math.floor(Math.min(a.width, a.height) - 18);
+  $('paper').style.width = $('paper').style.height = s + 'px';
+  const d = Math.min(3, devicePixelRatio || 1);
+  pad.width = pad.height = Math.round(s * d); redraw();
 }
+new ResizeObserver(fit).observe($('area'));
 function redraw() {
   pctx.setTransform(1, 0, 0, 1, 0, 0); pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, pad.width, pad.height);
-  const all = cur ? [...strokes, cur] : strokes;
-  drawFace(pctx, all, { fit: false, size: pad.width });
+  drawFace(pctx, cur ? [...strokes, cur] : strokes, { fit: false, size: pad.width });
 }
-addEventListener('resize', fit); new ResizeObserver(fit).observe($('board'));
+
+/* ---------- 그리기 (1000칸 좌표로 저장) ---------- */
 const pt = (e) => { const r = pad.getBoundingClientRect(); return [Math.round(Math.max(0, Math.min(999, (e.clientX - r.left) / r.width * 1000))), Math.round(Math.max(0, Math.min(999, (e.clientY - r.top) / r.height * 1000)))]; };
 let total = 0, pid = null;
 pad.addEventListener('pointerdown', (e) => {
   if (pid !== null) return; e.preventDefault();
-  if (total >= MAX_POINTS) { hint('그림이 꽉 찼어요 · 되돌리기로 조금 지워 주세요', true); return; }
+  if (total >= MAX_POINTS) { hint('그림이 꽉 찼어요. 실행 취소로 조금 지워 주세요', true); return; }
   pid = e.pointerId; pad.setPointerCapture(pid);
-  cur = { c: color, w: width, p: [pt(e)] }; total++; redraw();
+  cur = { c: tool === 'eraser' ? WHITE : color, w: size, p: [pt(e)] }; total++; redraw();
 });
 pad.addEventListener('pointermove', (e) => {
+  const p0 = pt(e); $('xy').textContent = `${p0[0]},${p0[1]}`;
   if (e.pointerId !== pid || !cur) return;
-  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-  for (const ev of evs) {
-    const p = pt(ev), l = cur.p[cur.p.length - 1], gap = Math.max(4, WIDTHS[cur.w] * .18);
-    if (Math.hypot(p[0] - l[0], p[1] - l[1]) < gap || total >= MAX_POINTS) continue;
+  for (const ev of (e.getCoalescedEvents ? e.getCoalescedEvents() : [e])) {
+    const p = pt(ev), l = cur.p[cur.p.length - 1];
+    if (Math.hypot(p[0] - l[0], p[1] - l[1]) < Math.max(4, WIDTHS[cur.w] * .18) || total >= MAX_POINTS) continue;
     cur.p.push(p); total++;
   }
   redraw();
 });
-const end = (e) => {
-  if (e.pointerId !== pid) return; pid = null;
-  if (cur) { strokes.push(cur); cur = null; redraw(); paintTools(); hint(''); }
-};
+const end = (e) => { if (e.pointerId !== pid) return; pid = null; if (cur) { strokes.push(cur); cur = null; redraw(); paint(); hint(''); } };
 pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end);
-$('undo').onclick = () => { const k = strokes.pop(); if (k) total -= k.p.length; redraw(); paintTools(); };
+$('undo').onclick = () => { const k = strokes.pop(); if (k) total -= k.p.length; redraw(); paint(); };
 $('clear').onclick = () => {
-  if ($('clear').dataset.sure !== '1') { $('clear').dataset.sure = '1'; $('clear').textContent = '정말요?'; setTimeout(() => { $('clear').dataset.sure = ''; $('clear').textContent = '지우기'; }, 2200); return; }
-  strokes = []; total = 0; $('clear').dataset.sure = ''; $('clear').textContent = '지우기'; redraw(); paintTools();
+  if ($('clear').dataset.sure !== '1') { $('clear').dataset.sure = '1'; hint('한 번 더 누르면 모두 지워져요', true); setTimeout(() => { $('clear').dataset.sure = ''; }, 2500); return; }
+  strokes = []; total = 0; $('clear').dataset.sure = ''; redraw(); paint(); hint('');
 };
-function hint(t, warn) { const el = $('hint'); el.textContent = t || '굵은 붓으로 얼굴을 칠하고, 가는 펜으로 눈·코·입을 그려 보세요'; el.classList.toggle('warn', !!warn); }
+function hint(t, warn) { $('hint').textContent = t || '큰 붓으로 얼굴을 칠하고, 연필로 눈·코·입을 그려요'; $('status').classList.toggle('warn', !!warn); }
 
 /* ---------- 보내기 ---------- */
 try { $('nameIn').value = localStorage.getItem('fw-name') || ''; } catch (e) {}
 $('doneBtn').onclick = () => {
   if (total < 12) { hint('조금만 더 그려 주세요', true); return; }
-  const pv = $('preview').getContext('2d'); pv.fillStyle = '#fff'; pv.fillRect(0, 0, 240, 240);
-  drawFace(pv, strokes, { x: 18, y: 18, size: 204 });
+  const pv = $('preview').getContext('2d'); pv.fillStyle = '#fff'; pv.fillRect(0, 0, 176, 176);
+  drawFace(pv, strokes, { x: 10, y: 10, size: 156 });
   $('sendHint').textContent = ''; $('sheet').hidden = false;
-  setTimeout(() => { if (!$('nameIn').value) $('nameIn').focus(); }, 350);
+  setTimeout(() => { if (!$('nameIn').value) $('nameIn').focus(); }, 200);
 };
-$('backBtn').onclick = () => { $('sheet').hidden = true; };
-$('sheet').addEventListener('click', (e) => { if (e.target === $('sheet')) $('sheet').hidden = true; });
+$('backBtn').onclick = $('xBtn').onclick = () => { $('sheet').hidden = true; };
 $('sendForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = $('nameIn').value.trim().slice(0, 8), msg = $('msgIn').value.trim().slice(0, 12);
   if (!name) { $('sendHint').textContent = '이름을 넣어 주세요'; $('nameIn').focus(); return; }
-  if (!store) { $('sendHint').textContent = '아직 연결 중이에요 · 잠시 후 다시 눌러 주세요'; return; }
+  if (!store) { $('sendHint').textContent = '아직 연결 중이에요. 잠시 후 다시 눌러 주세요'; return; }
   if (settings.open === false) { $('sendHint').textContent = '지금은 잠시 받지 않아요'; return; }
   try { localStorage.setItem('fw-name', name); } catch (err) {}
   $('sendBtn').disabled = true; $('sendHint').textContent = '보내는 중…';
   try {
     await store.addFace({ name, msg, at: Date.now(), s: strokes.map((k) => ({ c: k.c, w: k.w, p: enc(k.p) })) });
-    const dc = $('doneCv').getContext('2d'); dc.clearRect(0, 0, 520, 520); drawFace(dc, strokes, { x: 20, y: 20, size: 480 });
-    $('sheet').hidden = true; $('sDraw').hidden = true; $('sDone').hidden = false;
+    const dc = $('doneCv').getContext('2d'); dc.fillStyle = '#fff'; dc.fillRect(0, 0, 360, 360); drawFace(dc, strokes, { x: 20, y: 20, size: 320 });
+    $('sheet').hidden = true; $('sDone').hidden = false;
     if (navigator.vibrate) navigator.vibrate([40, 40, 80]);
-  } catch (err) { $('sendHint').textContent = '보내지 못했어요 · 인터넷을 확인하고 다시 눌러 주세요'; }
+  } catch (err) { $('sendHint').textContent = '보내지 못했어요. 인터넷을 확인하고 다시 눌러 주세요'; }
   $('sendBtn').disabled = false;
 });
-$('againBtn').onclick = () => {
-  strokes = []; total = 0; $('msgIn').value = '';
-  $('sDone').hidden = true; $('sDraw').hidden = false; fit(); paintTools(); hint('');
-};
+$('againBtn').onclick = () => { strokes = []; total = 0; $('msgIn').value = ''; $('sDone').hidden = true; redraw(); paint(); hint(''); };
 
 /* ---------- 연결 ---------- */
 try {
   store = await connect();
-  store.onSettings((s) => { settings = s; paintTools(); if (s.open === false) hint('지금은 잠시 받지 않아요 · 진행자가 열면 보낼 수 있어요', true); else if ($('hint').classList.contains('warn')) hint(''); });
+  store.onSettings((s) => { settings = s; paint(); if (s.open === false) hint('지금은 잠시 받지 않아요. 진행자가 열면 보낼 수 있어요', true); });
 } catch (e) { hint('인터넷 연결을 확인해 주세요', true); }
 </script>
 </body>
