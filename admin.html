@@ -216,7 +216,7 @@ async function start() {
   $('lScreen').href = $('lScreen').textContent = screen;
   $('lPlay').href = $('lPlay').textContent = play;
   $('lAdmin').href = $('lAdmin').textContent = pageUrl('admin.html');
-  try { const q = qrcode(0, 'M'); q.addData(play); q.make(); $('qr').src = q.createDataURL(6, 0); } catch (e) {}
+  try { const q = qrcode(0, 'M'); q.addData(play); q.make(); $('qr').src = q.createDataURL(6, 4); } catch (e) {}
 
   // 탭
   document.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => {
