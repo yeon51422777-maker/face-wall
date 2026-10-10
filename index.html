@@ -333,7 +333,7 @@ function applySettings(s) {
 }
 function renderQr() {
   $('copy').href = pageUrl('admin.html');
-  const url = pageUrl('play.html');
+  const url = pageUrl('draw.html');
   try { const q = qrcode(0, 'M'); q.addData(url); q.make(); $('qr').src = q.createDataURL(8, 0); } catch (e) {}
 }
 
