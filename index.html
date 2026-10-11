@@ -137,9 +137,11 @@ function faceSize() {   // 설정 크기, 단 사람이 많아 화면에 다 안
 // 말풍선은 얼굴 바로 위 가운데. 크기를 미리 재 둠
 function bubbleFont(s) { return Math.max(10, Math.min(18, s * .17)); }
 function measureBubble(f) {
-  if (!f.msg) { f.bw = f.bh = 0; return; }
+  // 이름과 기분을 번갈아 보여주므로, 둘 중 더 긴 쪽에 맞춰 크기를 잡음
+  const a = f.msg || '', b = f.name || '';
+  if (!a && !b) { f.bw = f.bh = 0; return; }
   const fs = bubbleFont(f.s); ctx.font = `700 ${fs}px "Noto Sans KR", sans-serif`;
-  f.bw = ctx.measureText(f.msg).width + fs * 1.2; f.bh = fs * 1.8;
+  f.bw = Math.max(ctx.measureText(a).width, ctx.measureText(b).width) + fs * 1.2; f.bh = fs * 1.8;
 }
 // 얼굴 하나가 차지하는 동그라미들: [얼굴] (+ [말풍선])
 function circles(f) {
@@ -258,7 +260,11 @@ function frame(now) {
     ctx.restore();
   }
   // 말풍선은 얼굴을 다 그린 뒤 맨 위에 (가려지지 않게)
-  for (const f of faces) if (!f.arriving && f.bw && f.s > 2) bubble(f.x, f.y - f.s / 2 - bubbleFont(f.s) * .3 + Math.sin(t * f.speed * 1.5 + f.phase) * f.s * .03, f.msg, bubbleFont(f.s));
+  // 2초마다 이름 ↔ 기분을 번갈아 보여줌 (얼굴마다 시작 시점이 달라서 한꺼번에 바뀌지 않음)
+  for (const f of faces) if (!f.arriving && f.bw && f.s > 2) {
+    const showName = !f.msg || (Math.floor(now / 2000 + f.phase) % 2 === 1);
+    bubble(f.x, f.y - f.s / 2 - bubbleFont(f.s) * .3 + Math.sin(t * f.speed * 1.5 + f.phase) * f.s * .03, showName ? (f.name || '누군가') : f.msg, bubbleFont(f.s));
+  }
   if (st) drawSpot(now, st, S, cx, cy);
 }
 function drawSpot(now, st, S, cx, cy) {
