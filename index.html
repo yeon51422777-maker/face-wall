@@ -77,10 +77,7 @@ body.clean #copy{ display:none }
 
 <div class="ov" id="empty"><b>첫 번째 얼굴을 기다리고 있어요</b><span>아래 QR을 찍고 그려 보세요</span></div>
 
-<div class="ov" id="help">
-  <span id="net">● 연결 중…</span><br>
-  <kbd>F</kbd> 전체화면 · <kbd>D</kbd> 연습 얼굴 · <kbd>Q</kbd> QR · <kbd>T</kbd> 제목 · <kbd>-</kbd><kbd>=</kbd> 얼굴 크기 · <kbd>M</kbd> 소리 <span id="snd">켜짐</span> · <kbd>H</kbd> 이 안내 숨기기
-</div>
+<span id="net" hidden></span><span id="snd" hidden>켜짐</span>
 
 <script type="module">
 import { connect, unpack, drawFace, bbox, hash, rng, pageUrl, demoFace, DEMO_NAMES, DEMO_MSGS, LOCAL, isLine } from './core.js';
